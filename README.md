@@ -1,2 +1,2 @@
 # raumgrad-aufmass
-Aufmaß und Angebots app für raumgrad
+Aufmaß und Angebots App für raumgrad
