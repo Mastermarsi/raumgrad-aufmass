@@ -558,12 +558,49 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; background: v
 .quote-actions { display: grid; gap: 10px; margin-top: 24px; }
 @media (min-width: 560px) { .quote-actions { grid-template-columns: 1fr 1fr; } }
 
+.price-adjust-block { margin-top: 24px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 18px; }
+.price-adjust-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+.price-adjust-title { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 19px; font-weight: 500; letter-spacing: -0.01em; color: var(--text); }
+.price-adjust-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+.position-list { display: flex; flex-direction: column; gap: 8px; }
+.position-row { display: grid; grid-template-columns: 1fr auto; gap: 14px; padding: 12px 14px; background: var(--surface-warm); border: 1px solid var(--border); border-radius: var(--radius); align-items: center; }
+.position-info { min-width: 0; }
+.position-label { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.3; }
+.position-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1.3; }
+.position-meta { font-size: 11px; color: var(--text-soft); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.position-original { color: var(--accent); }
+.position-price { display: flex; align-items: center; gap: 8px; }
+.position-price-input { position: relative; width: 100px; }
+.position-price-input input { width: 100%; padding: 6px 22px 6px 8px; font-size: 13px; text-align: right; background: white; border: 1.5px solid var(--border); border-radius: 4px; color: var(--text); font-variant-numeric: tabular-nums; -webkit-appearance: none; appearance: none; font-family: inherit; }
+.position-price-input input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.position-price-unit { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); color: var(--text-soft); font-size: 12px; pointer-events: none; }
+.position-total { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 15px; font-weight: 500; min-width: 80px; text-align: right; font-variant-numeric: tabular-nums; color: var(--text); }
+.override-marker { color: var(--accent); font-size: 10px; }
+.position-reset { background: transparent; border: none; color: var(--text-soft); cursor: pointer; width: 24px; height: 24px; border-radius: 50%; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.position-reset:hover { background: var(--bg); color: var(--accent); }
+
+.adjustment-list { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border); }
+.adjustment-list-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-soft); margin-bottom: 8px; font-weight: 600; }
+.adjustment-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-bottom: 8px; }
+.adjustment-fields { display: grid; grid-template-columns: 1fr 140px; gap: 8px; }
+.adjustment-amount { position: relative; }
+.adjustment-amount input { padding-right: 24px; text-align: right; font-variant-numeric: tabular-nums; }
+.adjustment-amount-unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-soft); font-size: 13px; pointer-events: none; }
+@media (max-width: 559px) { .adjustment-fields { grid-template-columns: 1fr; } }
+
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display: none; overflow-y: auto; padding: 20px 0; }
 .modal-overlay.open { display: block; }
 .modal { max-width: 820px; margin: 0 auto; background: white; border-radius: var(--radius-lg); overflow: hidden; }
 .modal-header { background: var(--bg); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 2; flex-wrap: wrap; gap: 8px; }
 .modal-title { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 18px; font-weight: 500; color: var(--text); }
 .modal-actions { display: flex; gap: 8px; }
+
+.settings-tabs { display: flex; gap: 2px; padding: 6px 14px 0; background: var(--bg); border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.settings-tab { font-family: inherit; padding: 10px 14px; border: none; background: transparent; color: var(--text-muted); font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s, border-color 0.15s; }
+.settings-tab:hover { color: var(--text); }
+.settings-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.settings-subtitle { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); font-weight: 600; margin-bottom: 10px; }
 
 .helper-text { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 .kv-info { background: var(--surface-warm); border-left: 3px solid var(--accent); padding: 10px 14px; font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-top: 12px; border-radius: 0 var(--radius) var(--radius) 0; }
@@ -611,16 +648,25 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; background: v
 </div>
 
 <div class="modal-overlay" id="settings-modal">
-  <div class="modal" style="max-width: 540px;">
+  <div class="modal" style="max-width: 620px;">
     <div class="modal-header">
       <span class="modal-title">Einstellungen</span>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" onclick="closeSettings()">Schließen</button>
       </div>
     </div>
-    <div style="padding: 24px;">
-      <div style="margin-bottom: 24px;">
-        <h3 style="font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 20px; font-weight: 500; color: var(--text); margin-bottom: 4px;">Verfasser</h3>
+
+    <div class="settings-tabs">
+      <button type="button" class="settings-tab active" data-settings-tab="author" onclick="showSettingsTab('author')">Verfasser</button>
+      <button type="button" class="settings-tab" data-settings-tab="company" onclick="showSettingsTab('company')">Firmendaten</button>
+      <button type="button" class="settings-tab" data-settings-tab="conditions" onclick="showSettingsTab('conditions')">Konditionen</button>
+      <button type="button" class="settings-tab" data-settings-tab="system" onclick="showSettingsTab('system')">System</button>
+    </div>
+
+    <div style="padding: 22px 24px;">
+
+      <!-- TAB: Verfasser -->
+      <div class="settings-section" data-settings-section="author">
         <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 18px;">Diese Daten erscheinen als „Ihr Ansprechpartner" auf jedem Angebot. Einmal eintragen, bleibt auf diesem Gerät gespeichert.</p>
         <div class="form-stack">
           <div class="field">
@@ -642,11 +688,65 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; background: v
           </div>
         </div>
       </div>
-      <div style="border-top: 1px solid var(--border); padding-top: 16px;">
-        <div style="font-size: 12px; color: var(--text-soft); margin-bottom: 12px;" id="settings-catalog-status">Katalog wird geladen …</div>
+
+      <!-- TAB: Firmendaten -->
+      <div class="settings-section" data-settings-section="company" style="display: none;">
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 18px;">Diese Daten erscheinen in der Fußzeile jedes Angebots.</p>
+
+        <div class="settings-subtitle">Rechtliches</div>
+        <div class="form-stack" style="margin-bottom: 22px;">
+          <div class="field">
+            <label class="field-label">USt-IdNr.</label>
+            <input type="text" class="input" id="company-ustId" placeholder="z. B. DE123456789">
+          </div>
+          <div class="field">
+            <label class="field-label">Handelsregister</label>
+            <input type="text" class="input" id="company-hrb" placeholder="z. B. HRB 12345, AG Friedberg">
+          </div>
+          <div class="field">
+            <label class="field-label">Geschäftsführer</label>
+            <input type="text" class="input" id="company-gf" placeholder="z. B. Max Mustermann">
+          </div>
+        </div>
+
+        <div class="settings-subtitle">Bankverbindung</div>
+        <div class="form-stack">
+          <div class="field">
+            <label class="field-label">Bank</label>
+            <input type="text" class="input" id="company-bank" placeholder="z. B. Sparkasse Hessen">
+          </div>
+          <div class="field">
+            <label class="field-label">IBAN</label>
+            <input type="text" class="input" id="company-iban" placeholder="DE00 0000 0000 0000 0000 00" style="font-variant-numeric: tabular-nums;">
+          </div>
+          <div class="field">
+            <label class="field-label">BIC</label>
+            <input type="text" class="input" id="company-bic" placeholder="z. B. HELADEF1FRI" style="text-transform: uppercase;">
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Konditionen -->
+      <div class="settings-section" data-settings-section="conditions" style="display: none;">
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 18px;">Diese Konditionen erscheinen auf Seite 2 jedes Angebots. Eine Zeile = ein Aufzählungspunkt.</p>
+        <div class="field">
+          <label class="field-label">Konditionen (eine pro Zeile)</label>
+          <textarea class="textarea" id="company-conditions" rows="10" style="min-height: 220px; font-size: 13px; line-height: 1.5;" placeholder="z. B. Festpreis verbindlich..."></textarea>
+          <div class="helper-text">Tipp: Mit <code style="background:var(--bg); padding:1px 4px; border-radius:3px;">**Fettgedrucktes**</code> kannst du Text hervorheben.</div>
+        </div>
+        <button type="button" class="btn btn-ghost" onclick="resetConditions()" style="margin-top: 10px; font-size: 13px;">↺ Auf Standard zurücksetzen</button>
+      </div>
+
+      <!-- TAB: System -->
+      <div class="settings-section" data-settings-section="system" style="display: none;">
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 18px;">Produktkatalog-Verbindung und Diagnose.</p>
+        <div style="font-size: 13px; color: var(--text); margin-bottom: 14px; padding: 10px 14px; background: var(--surface-warm); border-radius: var(--radius);" id="settings-catalog-status">Katalog wird geladen …</div>
         <button type="button" class="btn btn-secondary btn-block" id="test-connection-btn" onclick="runConnectionTest()" style="margin-bottom: 10px;">Verbindung testen</button>
         <div id="test-results"></div>
-        <button type="button" class="btn btn-primary btn-block" onclick="saveSettings()" style="margin-top: 14px;">Speichern</button>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); margin-top: 22px; padding-top: 16px;">
+        <button type="button" class="btn btn-primary btn-block" onclick="saveSettings()">Alle Einstellungen speichern</button>
       </div>
     </div>
   </div>
@@ -747,6 +847,24 @@ const STEPS = [
 
 const DEFAULT_AUTHOR = { name: '', initials: '', phone: '06039 / 468 90 30', email: 'info@raumgrad.de' };
 
+const DEFAULT_COMPANY = {
+  ustId: 'DE—',
+  hrb: 'HRB —, AG Friedberg',
+  geschaeftsfuehrer: '—',
+  bankName: 'Bank —',
+  iban: 'DE— — — —',
+  bic: '—',
+  conditions: [
+    'Festpreis verbindlich — keine versteckten Nachforderungen, keine Überraschungen vor Ort.',
+    'Gültigkeit 30 Tage ab Angebotsdatum.',
+    '5 Jahre Garantie auf Geräte und Montage.',
+    'Zahlungsbedingungen: 30 % Anzahlung bei Auftragsbestätigung, Restbetrag nach Abnahme.',
+    'Montagezeit 1–3 Werktage je nach Umfang.',
+    'Energiekosten-Vorteil: Moderne Inverter-Klimaanlagen sind hocheffizient (SCOP > 4) und können sowohl kühlen als auch heizen — bis zu 70 % Stromersparnis gegenüber Heizlüftern.',
+    'Es gelten unsere AGB, einsehbar unter raumgrad.de/agb.',
+  ].join('\n'),
+};
+
 const state = {
   stepIndex: 0,
   customer: { salutation: 'Herr', firstName: '', lastName: '', street: '', zip: '', city: '', phone: '', email: '', appointment: new Date().toISOString().slice(0,10) },
@@ -761,8 +879,11 @@ const state = {
   expandAllOutdoor: false,
   expandAllOutdoorPerRoom: {},
   author: { ...DEFAULT_AUTHOR },
+  company: { ...DEFAULT_COMPANY },
   indoorFilters: {},   // { roomId: { brand: 'X'|null, search: '' } }
   outdoorFilters: {},  // same shape, key 'shared' for shared mode, roomId for individual
+  priceOverrides: {},  // { positionKey: number } — overridden unit prices for THIS quote
+  adjustments: [],     // [{ id, description, amount }] — freeform extra lines for THIS quote
 };
 
 /* ========================================================== FILTERS & BRAND CONSISTENCY ========================================================== */
@@ -901,6 +1022,20 @@ function saveAuthor() {
   try { localStorage.setItem('raumgrad_author_v1', JSON.stringify(state.author)); } catch(e) {}
 }
 
+function loadCompany() {
+  try {
+    const raw = localStorage.getItem('raumgrad_company_v1');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      state.company = { ...DEFAULT_COMPANY, ...parsed };
+    }
+  } catch(e) {}
+}
+
+function saveCompany() {
+  try { localStorage.setItem('raumgrad_company_v1', JSON.stringify(state.company)); } catch(e) {}
+}
+
 function updateSettingsBtnStatus() {
   const btn = document.querySelector('.settings-btn');
   if (btn) btn.classList.toggle('has-author', !!state.author.name);
@@ -915,18 +1050,29 @@ function deriveInitials(name) {
 }
 
 function openSettings() {
-  // Pre-fill the inputs
+  // Verfasser
   document.getElementById('author-name').value = state.author.name || '';
   document.getElementById('author-initials').value = state.author.initials || '';
   document.getElementById('author-initials').placeholder = deriveInitials(state.author.name) || 'z. B. RA';
   document.getElementById('author-phone').value = state.author.phone || '';
   document.getElementById('author-email').value = state.author.email || '';
-  // Update catalog status text
+  // Firmendaten
+  document.getElementById('company-ustId').value = state.company.ustId || '';
+  document.getElementById('company-hrb').value = state.company.hrb || '';
+  document.getElementById('company-gf').value = state.company.geschaeftsfuehrer || '';
+  document.getElementById('company-bank').value = state.company.bankName || '';
+  document.getElementById('company-iban').value = state.company.iban || '';
+  document.getElementById('company-bic').value = state.company.bic || '';
+  // Konditionen
+  document.getElementById('company-conditions').value = state.company.conditions || '';
+  // Catalog status
   const statusEl = document.getElementById('settings-catalog-status');
   if (statusEl) {
     const color = catalogStatus === 'live' ? '#15803D' : catalogStatus === 'cache' ? '#1F4E47' : '#9B6B00';
-    statusEl.innerHTML = `Produktkatalog: <span style="color:${color}; font-weight:500;">${catalogStatusLabel()}</span> · ${PRODUCTS_INDOOR.length} Innen · ${PRODUCTS_OUTDOOR.length} Außen · ${ACCESSORIES.length} Zubehör`;
+    statusEl.innerHTML = `Produktkatalog: <span style="color:${color}; font-weight:600;">${catalogStatusLabel()}</span><br><span style="font-size:12px; color:var(--text-muted);">${PRODUCTS_INDOOR.length} Innen · ${PRODUCTS_OUTDOOR.length} Außen · ${ACCESSORIES.length} Zubehör</span>`;
   }
+  // Always start on first tab
+  showSettingsTab('author');
   document.getElementById('settings-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -936,16 +1082,36 @@ function closeSettings() {
   document.body.style.overflow = '';
 }
 
+function showSettingsTab(tabId) {
+  document.querySelectorAll('[data-settings-tab]').forEach(b => b.classList.toggle('active', b.dataset.settingsTab === tabId));
+  document.querySelectorAll('[data-settings-section]').forEach(s => s.style.display = s.dataset.settingsSection === tabId ? '' : 'none');
+}
+
 function saveSettings() {
+  // Verfasser
   state.author.name = document.getElementById('author-name').value.trim();
-  // Initials: use entered value, or fall back to auto-derived from name
   const enteredInitials = document.getElementById('author-initials').value.trim().toUpperCase();
   state.author.initials = enteredInitials || deriveInitials(state.author.name);
   state.author.phone = document.getElementById('author-phone').value.trim() || DEFAULT_AUTHOR.phone;
   state.author.email = document.getElementById('author-email').value.trim() || DEFAULT_AUTHOR.email;
   saveAuthor();
+  // Firmendaten
+  state.company.ustId = document.getElementById('company-ustId').value.trim() || DEFAULT_COMPANY.ustId;
+  state.company.hrb = document.getElementById('company-hrb').value.trim() || DEFAULT_COMPANY.hrb;
+  state.company.geschaeftsfuehrer = document.getElementById('company-gf').value.trim() || DEFAULT_COMPANY.geschaeftsfuehrer;
+  state.company.bankName = document.getElementById('company-bank').value.trim() || DEFAULT_COMPANY.bankName;
+  state.company.iban = document.getElementById('company-iban').value.trim() || DEFAULT_COMPANY.iban;
+  state.company.bic = document.getElementById('company-bic').value.trim().toUpperCase() || DEFAULT_COMPANY.bic;
+  // Konditionen
+  state.company.conditions = document.getElementById('company-conditions').value.trim() || DEFAULT_COMPANY.conditions;
+  saveCompany();
   updateSettingsBtnStatus();
   closeSettings();
+}
+
+function resetConditions() {
+  if (!confirm('Konditionen auf Standardtext zurücksetzen?')) return;
+  document.getElementById('company-conditions').value = DEFAULT_COMPANY.conditions;
 }
 
 function uid() { return Math.random().toString(36).slice(2, 9); }
@@ -1525,28 +1691,194 @@ function addExtra(sku) { state.extras.push({ sku, qty: 1 }); render(); }
 
 /* ========================================================== TOTALS ========================================================== */
 
+/* ========================================================== POSITIONS BUILDER (unified for quote, summary, totals) ========================================================== */
+
+function buildPositions() {
+  // Returns array of: { key, label, description, qty, unit, defaultUnitPrice, unitPrice, total, type }
+  // key uniquely identifies the position so price overrides survive re-renders.
+  const positions = [];
+
+  // Indoor units
+  for (const room of state.rooms) {
+    const p = PRODUCTS_INDOOR.find(x => x.sku === state.selectedDevices[room.id]);
+    if (p) {
+      const key = `indoor:${room.id}:${p.sku}`;
+      const defaultPrice = p.price;
+      const unitPrice = key in state.priceOverrides ? state.priceOverrides[key] : defaultPrice;
+      positions.push({
+        key, type: 'indoor',
+        label: `${p.brand} ${p.name} · ${p.kw} kW`,
+        description: `Innengerät für ${room.name || 'Raum'} (${room.area} m², ${ORIENTATION_LABEL[room.orientation]}) · ${p.type}`,
+        qty: 1, unit: 'Stk',
+        defaultUnitPrice: defaultPrice,
+        unitPrice,
+        total: unitPrice,
+      });
+    }
+  }
+
+  // Outdoor units
+  if (state.outdoorMode === 'shared' && state.selectedOutdoor) {
+    const o = PRODUCTS_OUTDOOR.find(x => x.sku === state.selectedOutdoor);
+    if (o) {
+      const key = `outdoor:shared:${o.sku}`;
+      const unitPrice = key in state.priceOverrides ? state.priceOverrides[key] : o.price;
+      positions.push({
+        key, type: 'outdoor',
+        label: `${o.brand} ${o.name} · ${o.kw} kW`,
+        description: `Außengerät ${o.type}${o.slots > 1 ? ', bis ' + o.slots + ' Innengeräte' : ''}`,
+        qty: 1, unit: 'Stk',
+        defaultUnitPrice: o.price,
+        unitPrice,
+        total: unitPrice,
+      });
+    }
+  } else if (state.outdoorMode === 'individual') {
+    for (const room of state.rooms) {
+      const o = PRODUCTS_OUTDOOR.find(x => x.sku === state.selectedOutdoorPerRoom[room.id]);
+      if (o) {
+        const key = `outdoor:${room.id}:${o.sku}`;
+        const unitPrice = key in state.priceOverrides ? state.priceOverrides[key] : o.price;
+        positions.push({
+          key, type: 'outdoor',
+          label: `${o.brand} ${o.name} · ${o.kw} kW`,
+          description: `Außengerät Single-Split für ${room.name || 'Raum'}`,
+          qty: 1, unit: 'Stk',
+          defaultUnitPrice: o.price,
+          unitPrice,
+          total: unitPrice,
+        });
+      }
+    }
+  }
+
+  // Extras
+  for (const e of state.extras) {
+    const a = ACCESSORIES.find(x => x.sku === e.sku);
+    if (!a) continue;
+    const key = `extra:${a.sku}`;
+    const unitPrice = key in state.priceOverrides ? state.priceOverrides[key] : a.price;
+    positions.push({
+      key, type: 'extra',
+      label: a.name,
+      description: a.desc || '',
+      qty: e.qty, unit: a.unit,
+      defaultUnitPrice: a.price,
+      unitPrice,
+      total: unitPrice * e.qty,
+    });
+  }
+
+  // Custom adjustments (positive or negative amounts)
+  for (const adj of state.adjustments) {
+    positions.push({
+      key: `adj:${adj.id}`, type: 'adjustment',
+      label: adj.description || 'Anpassung',
+      description: '',
+      qty: 1, unit: 'pauschal',
+      defaultUnitPrice: adj.amount,
+      unitPrice: adj.amount,
+      total: adj.amount,
+      isAdjustment: true,
+      adjustmentId: adj.id,
+    });
+  }
+
+  return positions;
+}
+
 function calcTotals() {
-  let devices = 0;
-  for (const room of state.rooms) { const p = PRODUCTS_INDOOR.find(x => x.sku === state.selectedDevices[room.id]); if (p) devices += p.price; }
-  if (state.outdoorMode === 'shared' && state.selectedOutdoor) { const o = PRODUCTS_OUTDOOR.find(x => x.sku === state.selectedOutdoor); if (o) devices += o.price; }
-  else if (state.outdoorMode === 'individual') { for (const room of state.rooms) { const o = PRODUCTS_OUTDOOR.find(x => x.sku === state.selectedOutdoorPerRoom[room.id]); if (o) devices += o.price; } }
-  let extras = 0;
-  for (const e of state.extras) { const a = ACCESSORIES.find(x => x.sku === e.sku); if (a) extras += a.price * e.qty; }
-  const net = devices + extras;
+  const positions = buildPositions();
+  let devices = 0, extras = 0, adjustments = 0;
+  for (const pos of positions) {
+    if (pos.type === 'indoor' || pos.type === 'outdoor') devices += pos.total;
+    else if (pos.type === 'extra') extras += pos.total;
+    else if (pos.type === 'adjustment') adjustments += pos.total;
+  }
+  const net = devices + extras + adjustments;
   const vat = net * 0.19;
   const gross = net + vat;
-  return { devices, extras, net, vat, gross };
+  return { devices, extras, adjustments, net, vat, gross };
+}
+
+/* ========================================================== PRICE OVERRIDES & ADJUSTMENTS ========================================================== */
+
+function setPriceOverride(key, newPriceStr) {
+  const newPrice = parseFloat(String(newPriceStr).replace(',', '.').replace(/[^0-9.-]/g, ''));
+  if (!isFinite(newPrice)) return;
+  state.priceOverrides[key] = newPrice;
+  updateAdjustmentUI();
+}
+
+function resetPriceOverride(key) {
+  delete state.priceOverrides[key];
+  render();
+}
+
+function addAdjustment() {
+  const id = uid();
+  state.adjustments.push({ id, description: '', amount: 0 });
+  render();
+  // Focus the new description input
+  setTimeout(() => {
+    const el = document.querySelector(`[data-adj-desc="${id}"]`);
+    if (el) el.focus();
+  }, 50);
+}
+
+function setAdjustmentDesc(id, val) {
+  const a = state.adjustments.find(x => x.id === id);
+  if (a) a.description = val;
+}
+
+function setAdjustmentAmount(id, val) {
+  const a = state.adjustments.find(x => x.id === id);
+  if (!a) return;
+  const num = parseFloat(String(val).replace(',', '.').replace(/[^0-9.-]/g, ''));
+  a.amount = isFinite(num) ? num : 0;
+  updateAdjustmentUI();
+}
+
+function removeAdjustment(id) {
+  state.adjustments = state.adjustments.filter(a => a.id !== id);
+  render();
+}
+
+function updateAdjustmentUI() {
+  // Surgical update — re-render positions list AND totals without full screen rebuild
+  const t = calcTotals();
+  const positions = buildPositions();
+  // Update totals
+  const setText = (sel, val) => { const el = document.querySelector(sel); if (el) el.textContent = fmtEUR.format(val); };
+  setText('[data-sum-devices]', t.devices);
+  setText('[data-sum-extras]', t.extras);
+  if (t.adjustments !== 0) setText('[data-sum-adjustments]', t.adjustments);
+  setText('[data-sum-net]', t.net);
+  setText('[data-sum-vat]', t.vat);
+  setText('[data-sum-gross]', t.gross);
+  // Update per-position totals
+  for (const pos of positions) {
+    const el = document.querySelector(`[data-position-total="${pos.key}"]`);
+    if (el) el.textContent = fmtEUR.format(pos.total);
+    const overrideMarker = document.querySelector(`[data-override-marker="${pos.key}"]`);
+    if (overrideMarker) {
+      const isOverridden = pos.key in state.priceOverrides && pos.unitPrice !== pos.defaultUnitPrice;
+      overrideMarker.style.display = isOverridden ? 'inline' : 'none';
+    }
+  }
 }
 
 /* ========================================================== SUMMARY ========================================================== */
 
 function renderSummaryScreen() {
   const t = calcTotals();
+  const positions = buildPositions();
   return `
     <section class="screen">
       <div class="screen-header"><div class="screen-label">Schritt 6 · Abschluss</div>
         <h1 class="screen-title">Bereit zum <span class="accent">Drucken</span>.</h1>
-        <p class="screen-subtitle">Letzte Prüfung vor Erstellung des Angebots.</p></div>
+        <p class="screen-subtitle">Letzte Prüfung vor Erstellung des Angebots. Hier kannst du Preise noch für dieses Angebot anpassen.</p></div>
+
       <div class="summary">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 14px;">
           <div><div class="field-label" style="margin-bottom: 6px">Kunde</div>
@@ -1556,12 +1888,38 @@ function renderSummaryScreen() {
             <div>${labelType()}</div>
             <div style="color: var(--text-muted); font-size: 14px">${state.rooms.length} Räume · ${state.rooms.reduce((s,r) => s + (r.finalKw||0), 0).toFixed(1)} kW gesamt</div></div>
         </div>
-        <div class="summary-row"><span>Geräte</span><span>${fmtEUR.format(t.devices)}</span></div>
-        <div class="summary-row"><span>Zusatzpositionen</span><span>${fmtEUR.format(t.extras)}</span></div>
-        <div class="summary-row"><span>Netto</span><span>${fmtEUR.format(t.net)}</span></div>
-        <div class="summary-row"><span>+ 19 % MwSt</span><span>${fmtEUR.format(t.vat)}</span></div>
-        <div class="summary-row total"><span>Gesamt</span><span>${fmtEUR.format(t.gross)}</span></div>
+        <div class="summary-row"><span>Geräte</span><span data-sum-devices>${fmtEUR.format(t.devices)}</span></div>
+        <div class="summary-row"><span>Zusatzpositionen</span><span data-sum-extras>${fmtEUR.format(t.extras)}</span></div>
+        ${t.adjustments !== 0 ? `<div class="summary-row"><span>Preisanpassungen</span><span data-sum-adjustments>${fmtEUR.format(t.adjustments)}</span></div>` : ''}
+        <div class="summary-row"><span>Netto</span><span data-sum-net>${fmtEUR.format(t.net)}</span></div>
+        <div class="summary-row"><span>+ 19 % MwSt</span><span data-sum-vat>${fmtEUR.format(t.vat)}</span></div>
+        <div class="summary-row total"><span>Gesamt</span><span data-sum-gross>${fmtEUR.format(t.gross)}</span></div>
       </div>
+
+      <div class="price-adjust-block">
+        <div class="price-adjust-head">
+          <div>
+            <div class="price-adjust-title">Preisanpassung</div>
+            <div class="price-adjust-sub">Nur für dieses Angebot. Der Katalog bleibt unverändert.</div>
+          </div>
+        </div>
+
+        <div class="position-list">
+          ${positions.filter(p => p.type !== 'adjustment').map(pos => renderPositionRow(pos)).join('')}
+        </div>
+
+        ${state.adjustments.length > 0 ? `
+          <div class="adjustment-list">
+            <div class="adjustment-list-label">Eigene Positionen</div>
+            ${state.adjustments.map(a => renderAdjustmentRow(a)).join('')}
+          </div>
+        ` : ''}
+
+        <button type="button" class="btn-add" onclick="addAdjustment()" style="margin-top: 12px;">
+          + Eigene Position hinzufügen (z. B. Zuschlag, Rabatt)
+        </button>
+      </div>
+
       <div class="quote-actions">
         <button type="button" class="btn btn-secondary btn-block" onclick="openAufmass()">Aufmaß-Dokumentation</button>
         <button type="button" class="btn btn-primary btn-block" onclick="openQuote()">Angebot ansehen & drucken</button>
@@ -1571,6 +1929,48 @@ function renderSummaryScreen() {
         <span>${PRODUCTS_INDOOR.length} Innen · ${PRODUCTS_OUTDOOR.length} Außen · ${ACCESSORIES.length} Zubehör</span>
       </div>
     </section>
+  `;
+}
+
+function renderPositionRow(pos) {
+  const isOverridden = pos.key in state.priceOverrides && pos.unitPrice !== pos.defaultUnitPrice;
+  return `
+    <div class="position-row">
+      <div class="position-info">
+        <div class="position-label">${pos.label}</div>
+        ${pos.description ? `<div class="position-desc">${pos.description}</div>` : ''}
+        <div class="position-meta">
+          ${fmtNum(pos.qty, pos.qty % 1 === 0 ? 0 : 1)} ${pos.unit}
+          ${isOverridden ? ` · <span class="position-original">Standard: ${fmtEUR.format(pos.defaultUnitPrice)}</span>` : ''}
+        </div>
+      </div>
+      <div class="position-price">
+        <span class="override-marker" data-override-marker="${pos.key}" style="display: ${isOverridden ? 'inline' : 'none'};">●</span>
+        <div class="position-price-input">
+          <input type="text" inputmode="decimal" value="${fmtNum(pos.unitPrice, 2)}" oninput="setPriceOverride('${pos.key}', this.value)" aria-label="Einzelpreis">
+          <span class="position-price-unit">€</span>
+        </div>
+        <div class="position-total" data-position-total="${pos.key}">${fmtEUR.format(pos.total)}</div>
+        ${isOverridden ? `<button type="button" class="position-reset" onclick="resetPriceOverride('${pos.key}')" title="Auf Standardpreis zurücksetzen">↺</button>` : '<span style="width:24px"></span>'}
+      </div>
+    </div>
+  `;
+}
+
+function renderAdjustmentRow(a) {
+  return `
+    <div class="adjustment-row">
+      <div class="adjustment-fields">
+        <input type="text" class="input" placeholder="z. B. Zuschlag Unwägbarkeiten" value="${(a.description || '').replace(/"/g, '&quot;')}" data-adj-desc="${a.id}" oninput="setAdjustmentDesc('${a.id}', this.value)">
+        <div class="adjustment-amount">
+          <input type="text" class="input" inputmode="decimal" placeholder="Betrag" value="${a.amount || ''}" oninput="setAdjustmentAmount('${a.id}', this.value)">
+          <span class="adjustment-amount-unit">€</span>
+        </div>
+      </div>
+      <button type="button" class="btn-icon-only" onclick="removeAdjustment('${a.id}')" aria-label="Entfernen">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3L11 11M11 3L3 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
   `;
 }
 
@@ -1821,29 +2221,40 @@ window.addEventListener('load', function() { setTimeout(function() { try { windo
 
 /* ========================================================== QUOTE DOC — 2 pages, same footer on each ========================================================== */
 
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderConditionsHtml() {
+  // Convert each non-empty line into <li>. Support **bold** syntax.
+  const raw = (state.company && state.company.conditions) || DEFAULT_COMPANY.conditions;
+  return raw.split('\n')
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => {
+      const escaped = escapeHtml(line).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      return `<li>${escaped}</li>`;
+    })
+    .join('\n              ');
+}
+
 function renderQuoteDoc() {
   const t = calcTotals();
-  let posCount = 0;
-  const rows = [];
-  for (const room of state.rooms) {
-    const p = PRODUCTS_INDOOR.find(x => x.sku === state.selectedDevices[room.id]);
-    if (p) { posCount++; rows.push({ pos: posCount, name: `${p.brand} ${p.name} · ${p.kw} kW`, desc: `Innengerät für ${room.name || 'Raum'} (${room.area} m², ${ORIENTATION_LABEL[room.orientation]}) · ${p.type}`, qty: 1, unit: 'Stk', unitPrice: p.price, total: p.price }); }
-  }
-  if (state.outdoorMode === 'shared' && state.selectedOutdoor) {
-    const o = PRODUCTS_OUTDOOR.find(x => x.sku === state.selectedOutdoor);
-    if (o) { posCount++; rows.push({ pos: posCount, name: `${o.brand} ${o.name} · ${o.kw} kW`, desc: `Außengerät ${o.type}${o.slots > 1 ? ', bis ' + o.slots + ' Innengeräte' : ''}`, qty: 1, unit: 'Stk', unitPrice: o.price, total: o.price }); }
-  } else if (state.outdoorMode === 'individual') {
-    for (const room of state.rooms) {
-      const o = PRODUCTS_OUTDOOR.find(x => x.sku === state.selectedOutdoorPerRoom[room.id]);
-      if (o) { posCount++; rows.push({ pos: posCount, name: `${o.brand} ${o.name} · ${o.kw} kW`, desc: `Außengerät Single-Split für ${room.name || 'Raum'}`, qty: 1, unit: 'Stk', unitPrice: o.price, total: o.price }); }
-    }
-  }
-  for (const e of state.extras) {
-    const a = ACCESSORIES.find(x => x.sku === e.sku);
-    if (!a) continue;
-    posCount++;
-    rows.push({ pos: posCount, name: a.name, desc: a.desc || '', qty: e.qty, unit: a.unit, unitPrice: a.price, total: a.price * e.qty });
-  }
+  const positions = buildPositions();
+  const rows = positions.map((pos, i) => ({
+    pos: i + 1,
+    name: pos.label,
+    desc: pos.description,
+    qty: pos.qty,
+    unit: pos.unit,
+    unitPrice: pos.unitPrice,
+    total: pos.total,
+  }));
+  const posCount = rows.length;
 
   const today = fmtDate(new Date().toISOString());
   const validUntil = fmtDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());
@@ -1861,8 +2272,8 @@ function renderQuoteDoc() {
       <div class="doc-foot">
         <div class="doc-foot-block"><strong>Raumgrad GmbH</strong>Robert-Bosch-Straße 24<br>61184 Karben<br>Deutschland</div>
         <div class="doc-foot-block"><strong>Kontakt</strong>06039 / 468 90 30<br>info@raumgrad.de<br>raumgrad.de</div>
-        <div class="doc-foot-block"><strong>Rechtliches</strong>USt-IdNr.: DE—<br>HRB —, AG Friedberg<br>Geschäftsführer: —</div>
-        <div class="doc-foot-block"><strong>Bankverbindung</strong>Bank —<br>IBAN: DE— — —<br>BIC: —</div>
+        <div class="doc-foot-block"><strong>Rechtliches</strong>USt-IdNr.: ${state.company.ustId}<br>${state.company.hrb}<br>Geschäftsführer: ${state.company.geschaeftsfuehrer}</div>
+        <div class="doc-foot-block"><strong>Bankverbindung</strong>${state.company.bankName}<br>IBAN: ${state.company.iban}<br>BIC: ${state.company.bic}</div>
       </div>
     </div>
   `;
@@ -1985,13 +2396,7 @@ function renderQuoteDoc() {
           <div class="doc-conditions">
             <div class="doc-conditions-title">Unsere Konditionen</div>
             <ul>
-              <li><strong>Festpreis verbindlich</strong> — keine versteckten Nachforderungen, keine Überraschungen vor Ort.</li>
-              <li><strong>Gültigkeit</strong> 30 Tage ab Angebotsdatum.</li>
-              <li><strong>5 Jahre Garantie</strong> auf Geräte und Montage.</li>
-              <li><strong>Zahlungsbedingungen:</strong> 30 % Anzahlung bei Auftragsbestätigung, Restbetrag nach Abnahme.</li>
-              <li><strong>Montagezeit</strong> 1–3 Werktage je nach Umfang.</li>
-              <li><strong>Energiekosten-Vorteil:</strong> Moderne Inverter-Klimaanlagen sind hocheffizient (SCOP > 4) und können sowohl kühlen als auch heizen — bis zu 70 % Stromersparnis gegenüber Heizlüftern.</li>
-              <li>Es gelten unsere AGB, einsehbar unter raumgrad.de/agb.</li>
+              ${renderConditionsHtml()}
             </ul>
           </div>
 
@@ -2496,7 +2901,7 @@ function resetAll() {
   if (!confirm('Aufmaß komplett zurücksetzen?')) return;
   state.stepIndex = 0;
   state.customer = { salutation: 'Herr', firstName: '', lastName: '', street: '', zip: '', city: '', phone: '', email: '', appointment: new Date().toISOString().slice(0,10) };
-  state.rooms = []; state.selectedDevices = {}; state.outdoorMode = 'individual'; state.selectedOutdoor = null; state.selectedOutdoorPerRoom = {}; state.extras = []; state.quoteNumber = null; state.expandAllDevices = {}; state.expandAllOutdoor = false; state.expandAllOutdoorPerRoom = {}; state.indoorFilters = {}; state.outdoorFilters = {};
+  state.rooms = []; state.selectedDevices = {}; state.outdoorMode = 'individual'; state.selectedOutdoor = null; state.selectedOutdoorPerRoom = {}; state.extras = []; state.quoteNumber = null; state.expandAllDevices = {}; state.expandAllOutdoor = false; state.expandAllOutdoorPerRoom = {}; state.indoorFilters = {}; state.outdoorFilters = {}; state.priceOverrides = {}; state.adjustments = [];
   const r = makeRoom(); r.name = 'Wohnzimmer'; const calc = calculateRoom(r); r.finalKw = calc.recommendedKw; state.rooms.push(r);
   render();
 }
@@ -2504,6 +2909,7 @@ function resetAll() {
 (function init() {
   // Verfasser aus localStorage laden
   loadAuthor();
+  loadCompany();
 
   // Erst Cache (instant), dann Live-Daten im Hintergrund
   initCatalogSync();
