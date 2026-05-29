@@ -318,6 +318,46 @@
 .amdoc-cell-value { font-weight: 500; font-variant-numeric: tabular-nums; color: #0F0F0F; }
 .amdoc-notes { margin-top: 8px; font-size: 9pt; font-style: italic; color: #4B4B4B; }
 
+.amdoc-photo-section { margin-top: 12px; }
+.amdoc-photo-label {
+  font-size: 7.5pt;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #1F4E47;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.amdoc-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+.amdoc-photo {
+  background: #FAFAFA;
+  border: 1px solid #E0E0DD;
+  border-radius: 3px;
+  overflow: hidden;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.amdoc-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.amdoc-photo-caption {
+  padding: 4px 6px;
+  font-size: 7.5pt;
+  color: #4B4B4B;
+  line-height: 1.3;
+  font-style: italic;
+  border-top: 1px solid #E8E6E0;
+  background: white;
+}
+
 /* ============== Screen + Print rules ============== */
 
 @page { size: A4; margin: 0; }
@@ -346,6 +386,29 @@
   .doc-table tr { page-break-inside: avoid; break-inside: avoid; }
   .amdoc-room { page-break-inside: avoid; break-inside: avoid; }
 }
+
+/* ============== Margin-PDF (intern calculation, not for customers) ============== */
+.mpdf-doc { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 10pt; line-height: 1.5; color: #0F0F0F; }
+.mpdf-page { width: 210mm; min-height: 297mm; box-sizing: border-box; padding: 18mm 16mm; background: white; }
+.mpdf-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1F4E47; padding-bottom: 10mm; margin-bottom: 8mm; }
+.mpdf-brand { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', Times, serif; font-size: 22pt; font-weight: 500; letter-spacing: -0.01em; }
+.mpdf-subtitle { font-size: 9pt; color: #B91C1C; font-weight: 600; letter-spacing: 0.05em; margin-top: 4mm; }
+.mpdf-meta { text-align: right; font-size: 9pt; color: #4B4B4B; line-height: 1.6; }
+.mpdf-customer { margin-bottom: 6mm; padding-bottom: 5mm; border-bottom: 1px solid #E0E0DD; font-size: 10pt; }
+.mpdf-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; margin-bottom: 8mm; }
+.mpdf-table th { background: #F4F1EA; color: #1F4E47; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 7.5pt; padding: 4mm 2mm; text-align: right; border-bottom: 1.5px solid #1F4E47; }
+.mpdf-table th:nth-child(1), .mpdf-table th:nth-child(2) { text-align: left; }
+.mpdf-table td { padding: 3mm 2mm; border-bottom: 1px solid #E8E6E0; vertical-align: top; }
+.mpdf-num { color: #6B6B6B; font-variant-numeric: tabular-nums; width: 8mm; }
+.mpdf-label { font-weight: 500; }
+.mpdf-qty { text-align: right; color: #4B4B4B; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mpdf-num-cell { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mpdf-excluded-note { padding: 3mm 4mm; background: #F4F1EA; border-radius: 2mm; font-size: 8pt; color: #4B4B4B; margin-bottom: 5mm; }
+.mpdf-warning { padding: 3mm 4mm; background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 2mm; font-size: 8pt; color: #78350F; margin-bottom: 5mm; }
+.mpdf-totals { margin-top: 6mm; padding: 5mm 6mm; background: #F4F1EA; border-radius: 2mm; }
+.mpdf-totals-row { display: flex; justify-content: space-between; padding: 1.5mm 0; font-size: 10pt; font-variant-numeric: tabular-nums; }
+.mpdf-totals-grand { display: flex; justify-content: space-between; font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', Times, serif; font-size: 17pt; font-weight: 500; padding-top: 3mm; margin-top: 2mm; border-top: 1.5px solid #1F4E47; font-variant-numeric: tabular-nums; }
+.mpdf-footnote { margin-top: 8mm; padding-top: 5mm; border-top: 1px solid #E0E0DD; font-size: 8pt; color: #6B6B6B; line-height: 1.5; }
 </style>
 
 <style>
@@ -507,7 +570,35 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; background: v
 .bottom-nav-inner { max-width: 880px; margin: 0 auto; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
 
 .device-room-block { margin-bottom: 32px; }
-.device-room-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.device-room-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.device-room-head-clickable { cursor: pointer; margin-bottom: 0; padding-bottom: 14px; user-select: none; -webkit-user-select: none; }
+.device-room-block.is-collapsed .device-room-head-clickable { margin-bottom: 0; padding-bottom: 14px; border-bottom: none; }
+.device-room-block.is-collapsed { padding-bottom: 16px; }
+.room-collapse-btn { background: transparent; border: 1px solid var(--border); color: var(--text-muted); width: 30px; height: 30px; border-radius: 50%; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
+.room-collapse-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.room-collapse-btn svg { display: block; }
+
+.collapse-all-row { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 12px; }
+.btn-link { background: transparent; border: none; color: var(--accent); cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 500; padding: 4px 10px; border-radius: var(--radius); }
+.btn-link:hover { background: var(--accent-soft); }
+.btn-link-danger { color: #B91C1C; }
+.btn-link-danger:hover { background: #FEE2E2; }
+
+/* Circles UI */
+.outdoor-circles-wrap { display: flex; flex-direction: column; gap: 14px; }
+.circles-warning { padding: 12px 16px; background: #FEE2E2; border: 1px solid #FCA5A5; border-radius: var(--radius); font-size: 13px; color: #7F1D1D; line-height: 1.5; }
+.circle-rooms-picker { margin-bottom: 16px; padding: 12px; background: var(--surface-warm); border: 1px solid var(--border); border-radius: var(--radius); }
+.circle-rooms-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-soft); font-weight: 600; margin-bottom: 10px; }
+.circle-rooms-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.circle-room-checkbox { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: white; border: 1.5px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: all 0.15s; position: relative; }
+.circle-room-checkbox:hover { border-color: var(--accent); }
+.circle-room-checkbox.checked { border-color: var(--accent); background: var(--accent-soft); }
+.circle-room-checkbox.is-in-other { opacity: 0.55; }
+.circle-room-checkbox input { width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; accent-color: var(--accent); }
+.circle-room-label { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.circle-room-name { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.2; }
+.circle-room-kw { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.circle-room-elsewhere { font-size: 10px; color: var(--text-soft); font-style: italic; }
 .device-room-head-title { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 20px; font-weight: 500; letter-spacing: -0.01em; color: var(--text); }
 .device-room-head-meta { font-size: 13px; color: var(--text-soft); font-variant-numeric: tabular-nums; }
 .device-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-soft); margin-bottom: 8px; font-weight: 600; }
@@ -526,6 +617,12 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; background: v
 .filter-empty { padding: 18px; text-align: center; color: var(--text-muted); font-size: 13px; background: var(--surface-warm); border: 1px dashed var(--border); border-radius: var(--radius); }
 .device-list { display: flex; flex-direction: column; gap: 8px; }
 .device-row { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; align-items: start; transition: border-color 0.15s; color: var(--text); }
+.device-row-content { display: flex; gap: 14px; align-items: flex-start; min-width: 0; }
+.device-row-text { flex: 1; min-width: 0; }
+.device-thumb { flex-shrink: 0; width: 72px; height: 72px; border: 1px solid var(--border); border-radius: 6px; background: white; padding: 0; cursor: zoom-in; overflow: hidden; display: block; }
+.device-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; background: white; }
+.device-thumb:hover { border-color: var(--accent); }
+@media (max-width: 559px) { .device-thumb { width: 56px; height: 56px; } }
 .device-row.selected { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
 .device-brand { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); font-weight: 600; }
 .device-name { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 16px; font-weight: 500; margin-top: 2px; color: var(--text); }
@@ -559,6 +656,80 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; background: v
 @media (min-width: 560px) { .quote-actions { grid-template-columns: 1fr 1fr; } }
 
 .price-adjust-block { margin-top: 24px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 18px; }
+
+.extras-section-title { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 20px; font-weight: 500; letter-spacing: -0.01em; color: var(--text); margin-bottom: 4px; margin-top: 8px; }
+.extras-section-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
+
+.montage-block { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 22px; }
+.montage-head { margin-bottom: 14px; }
+.montage-title { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 19px; font-weight: 500; letter-spacing: -0.01em; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.montage-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+.montage-input-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 14px; align-items: end; }
+@media (max-width: 559px) { .montage-input-row { grid-template-columns: 1fr; } }
+.montage-days-input { font-size: 17px; padding: 12px 14px; font-variant-numeric: tabular-nums; }
+.montage-day-rate-info { padding: 10px 14px; background: var(--surface-warm); border: 1px solid var(--border); border-radius: var(--radius); }
+.montage-day-rate-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-soft); font-weight: 600; }
+.montage-day-rate-value { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 17px; font-weight: 500; color: var(--text); margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+.montage-total { margin-top: 14px; padding: 10px 14px; background: var(--accent-soft); border-radius: var(--radius); font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 16px; font-weight: 500; color: var(--accent); text-align: right; font-variant-numeric: tabular-nums; }
+
+.overview-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 18px; }
+.overview-grid { display: grid; gap: 20px; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .overview-grid { grid-template-columns: 1fr 1fr; } }
+.overview-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-soft); font-weight: 600; margin-bottom: 6px; }
+.overview-value { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 17px; color: var(--text); line-height: 1.3; }
+.overview-value-sub { color: var(--text-muted); font-size: 13px; margin-top: 4px; line-height: 1.4; }
+
+.overview-positions { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 18px; }
+.overview-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-soft); font-weight: 600; margin-bottom: 12px; }
+.overview-pos-table { display: flex; flex-direction: column; }
+.overview-pos-row { display: grid; grid-template-columns: 28px 1fr auto auto auto; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.overview-pos-row:last-child { border-bottom: none; }
+.overview-pos-num { font-variant-numeric: tabular-nums; color: var(--text-soft); font-size: 12px; font-weight: 500; }
+.overview-pos-info { min-width: 0; }
+.overview-pos-label { font-size: 14px; color: var(--text); line-height: 1.3; font-weight: 500; }
+.overview-pos-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1.3; }
+.overview-pos-qty { font-size: 13px; color: var(--text-muted); font-variant-numeric: tabular-nums; min-width: 64px; text-align: right; }
+.overview-pos-unit-price { font-size: 13px; color: var(--text-muted); font-variant-numeric: tabular-nums; min-width: 80px; text-align: right; }
+.overview-pos-total { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 15px; font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; min-width: 90px; text-align: right; }
+@media (max-width: 559px) {
+  .overview-pos-row { grid-template-columns: 24px 1fr auto; gap: 8px; }
+  .overview-pos-qty, .overview-pos-unit-price { display: none; }
+  .overview-pos-total { min-width: 80px; }
+}
+
+.overview-totals { background: var(--accent); color: white; border-radius: var(--radius-lg); padding: 18px 22px; margin-bottom: 18px; }
+.overview-totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; font-variant-numeric: tabular-nums; }
+.overview-totals-row span:last-child { font-weight: 500; }
+.overview-totals-grand { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 22px; font-weight: 500; padding-top: 12px; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); }
+.overview-totals-grand span:last-child { font-weight: 500; }
+
+.photo-block { margin-top: 24px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 18px; }
+.photo-block-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+.photo-block-title { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 19px; font-weight: 500; letter-spacing: -0.01em; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.photo-block-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+.photo-warning { margin-top: 10px; padding: 10px 14px; background: #FEF3C7; border: 1px solid #FDE68A; border-radius: var(--radius); font-size: 12px; color: #78350F; }
+
+.photo-slot { padding: 14px 0; border-top: 1px dashed var(--border); }
+.photo-slot:first-of-type { border-top: none; padding-top: 6px; }
+.photo-slot-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.photo-slot-label-meta { color: var(--text-soft); font-weight: 400; font-size: 12px; }
+
+.photo-upload-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; background: var(--surface-warm); border: 1.5px dashed var(--border-strong); border-radius: var(--radius); color: var(--text); font-size: 13px; cursor: pointer; font-family: inherit; font-weight: 500; }
+.photo-upload-btn:hover { border-color: var(--accent); color: var(--accent); }
+.photo-upload-btn input { display: none; }
+.photo-uploading { display: none; margin-left: 8px; color: var(--accent); font-size: 12px; font-weight: 500; }
+
+.photo-gallery { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); margin-top: 12px; }
+.photo-card { background: var(--surface-warm); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.photo-thumb { position: relative; aspect-ratio: 4/3; cursor: pointer; background: #000; overflow: hidden; }
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-thumb-overlay { position: absolute; top: 4px; right: 4px; width: 26px; height: 26px; border-radius: 50%; background: rgba(0,0,0,0.6); border: none; color: white; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+.photo-thumb-overlay:hover { background: rgba(185,28,28,0.85); }
+.photo-caption-input { width: 100%; border: none; border-top: 1px solid var(--border); padding: 8px 10px; font-size: 12px; background: white; color: var(--text); font-family: inherit; -webkit-appearance: none; appearance: none; }
+.photo-caption-input:focus { outline: none; background: var(--accent-soft); }
+.photo-caption-input::placeholder { color: var(--text-soft); }
 .price-adjust-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
 .price-adjust-title { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 19px; font-weight: 500; letter-spacing: -0.01em; color: var(--text); }
 .price-adjust-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
@@ -590,6 +761,8 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; background: v
 @media (max-width: 559px) { .adjustment-fields { grid-template-columns: 1fr; } }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display: none; overflow-y: auto; padding: 20px 0; }
+.modal-overlay#photo-lightbox { background: rgba(0,0,0,0.85); z-index: 200; display: none; align-items: center; justify-content: center; padding: 0; }
+.modal-overlay#photo-lightbox.open { display: flex; }
 .modal-overlay.open { display: block; }
 .modal { max-width: 820px; margin: 0 auto; background: white; border-radius: var(--radius-lg); overflow: hidden; }
 .modal-header { background: var(--bg); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 2; flex-wrap: wrap; gap: 8px; }
@@ -601,6 +774,32 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; background: v
 .settings-tab:hover { color: var(--text); }
 .settings-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .settings-subtitle { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); font-weight: 600; margin-bottom: 10px; }
+
+/* Margin / Kalkulation view */
+.margin-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.margin-row { display: grid; grid-template-columns: 1fr auto 28px; gap: 12px; align-items: start; padding: 10px 12px; background: var(--surface-warm); border: 1px solid var(--border); border-radius: var(--radius); }
+.margin-row-main { min-width: 0; }
+.margin-row-label { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.3; }
+.margin-row-ek { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.margin-row-numbers { text-align: right; min-width: 120px; }
+.margin-row-vk { font-size: 13px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.margin-row-margin { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.margin-row-pct { font-size: 11px; opacity: 0.8; margin-left: 4px; }
+.margin-row-remove { background: transparent; border: none; color: var(--text-soft); cursor: pointer; width: 24px; height: 24px; border-radius: 50%; font-size: 18px; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; align-self: center; font-family: inherit; }
+.margin-row-remove:hover { background: #FEE2E2; color: #B91C1C; }
+
+.margin-excluded-section { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border); }
+.margin-excluded-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-soft); font-weight: 600; }
+.margin-row-excluded { grid-template-columns: 1fr 28px; opacity: 0.6; background: white; }
+.margin-row-excluded .margin-row-label { text-decoration: line-through; }
+.margin-row-restore { background: transparent; border: none; color: var(--text-soft); cursor: pointer; width: 24px; height: 24px; border-radius: 50%; font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; align-self: center; font-family: inherit; }
+.margin-row-restore:hover { background: var(--accent-soft); color: var(--accent); }
+
+.margin-warning { padding: 10px 14px; background: #FEF3C7; border: 1px solid #FDE68A; border-radius: var(--radius); font-size: 12px; color: #78350F; margin-bottom: 14px; }
+
+.margin-summary { background: var(--accent); color: white; border-radius: var(--radius-lg); padding: 16px 18px; }
+.margin-summary-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; font-variant-numeric: tabular-nums; }
+.margin-summary-total { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 20px; font-weight: 500; padding-top: 10px; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.25); background: white; color: var(--text); margin-left: -18px; margin-right: -18px; margin-bottom: -16px; padding-left: 18px; padding-right: 18px; padding-bottom: 14px; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
 
 .helper-text { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 .kv-info { background: var(--surface-warm); border-left: 3px solid var(--accent); padding: 10px 14px; font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-top: 12px; border-radius: 0 var(--radius) var(--radius) 0; }
@@ -647,6 +846,13 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; background: v
   </div>
 </div>
 
+<div class="modal-overlay" id="photo-lightbox" onclick="closePhotoLightbox()">
+  <div style="max-width: 90vw; max-height: 90vh; margin: auto; padding: 20px; text-align: center;">
+    <img src="" style="max-width: 100%; max-height: 80vh; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); background: white;" alt="Foto-Vorschau">
+    <div style="margin-top: 16px; color: white; font-size: 14px;" data-lightbox-caption>Tippe oder klicke außerhalb zum Schließen</div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="settings-modal">
   <div class="modal" style="max-width: 620px;">
     <div class="modal-header">
@@ -661,6 +867,7 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; background: v
       <button type="button" class="settings-tab" data-settings-tab="company" onclick="showSettingsTab('company')">Firmendaten</button>
       <button type="button" class="settings-tab" data-settings-tab="conditions" onclick="showSettingsTab('conditions')">Konditionen</button>
       <button type="button" class="settings-tab" data-settings-tab="system" onclick="showSettingsTab('system')">System</button>
+      <button type="button" class="settings-tab" data-settings-tab="margin" onclick="showSettingsTab('margin')" style="margin-left: auto;">Kalkulation</button>
     </div>
 
     <div style="padding: 22px 24px;">
@@ -745,7 +952,14 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; background: v
         <div id="test-results"></div>
       </div>
 
-      <div style="border-top: 1px solid var(--border); margin-top: 22px; padding-top: 16px;">
+      <!-- TAB: Kalkulation (intern, EK-Preise & Margen) -->
+      <div class="settings-section" data-settings-section="margin" style="display: none;">
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Internkalkulation für das <strong>aktuell konfigurierte Angebot</strong>.</p>
+        <p style="font-size: 12px; color: var(--text-soft); margin-bottom: 18px;">EK-Preise werden aus der Spalte „EK Preis mit Mwst" im Sheet gelesen und automatisch von Brutto auf Netto umgerechnet (÷ 1,19).</p>
+        <div id="margin-content"></div>
+      </div>
+
+      <div id="settings-save-wrap" style="border-top: 1px solid var(--border); margin-top: 22px; padding-top: 16px;">
         <button type="button" class="btn btn-primary btn-block" onclick="saveSettings()">Alle Einstellungen speichern</button>
       </div>
     </div>
@@ -832,6 +1046,7 @@ const ACCESSORIES = [
   { sku: 'ACC-ELEK', name: 'Elektroanschluss', unit: 'pauschal', price: 280, desc: 'Anschluss Außengerät an vorhandene Zuleitung' },
   { sku: 'ACC-INB', name: 'Inbetriebnahme & Einweisung', unit: 'pauschal', price: 190 },
   { sku: 'ACC-FAHRT', name: 'Anfahrtspauschale', unit: 'pauschal', price: 90 },
+  { sku: 'ACC-MONT', name: 'Tagessatz Montage', unit: 'Tag', price: 800, desc: 'Pauschalsatz pro Montagetag, Material und Werkzeug inklusive' },
 ];
 
 /* ========================================================== STATE ========================================================== */
@@ -841,6 +1056,7 @@ const STEPS = [
   { id: 'rooms',    label: 'Räume' },
   { id: 'indoor',   label: 'Innen' },
   { id: 'outdoor',  label: 'Außen' },
+  { id: 'doku',     label: 'Doku' },
   { id: 'extras',   label: 'Zusatz' },
   { id: 'summary',  label: 'Angebot' },
 ];
@@ -878,13 +1094,139 @@ const state = {
   expandAllDevices: {},
   expandAllOutdoor: false,
   expandAllOutdoorPerRoom: {},
+  collapsedIndoorRooms: {},  // { roomId: true } — rooms collapsed in indoor screen
+  collapsedOutdoorRooms: {}, // { roomId or 'shared' or circleId: true } — collapsed outdoor blocks
+  outdoorCircles: [],        // [{ id, name, roomIds: [], sku: null }] — for 'circles' mode
   author: { ...DEFAULT_AUTHOR },
   company: { ...DEFAULT_COMPANY },
   indoorFilters: {},   // { roomId: { brand: 'X'|null, search: '' } }
   outdoorFilters: {},  // same shape, key 'shared' for shared mode, roomId for individual
   priceOverrides: {},  // { positionKey: number } — overridden unit prices for THIS quote
   adjustments: [],     // [{ id, description, amount }] — freeform extra lines for THIS quote
+  photos: {},          // { roomId or 'outdoor': [{ id, dataUrl, caption, takenAt }] } — RAM only, lost on tab close
+  montageDays: null,   // Number of installation days, manually entered by technician
+  extrasPrefilled: false, // Tracks whether autoPrefillExtras has already run for this quote
+  marginExcluded: {},     // { positionKey: true } — positions hidden from margin view only (don't affect quote)
 };
+
+const SKU_MONTAGE_DAY = 'ACC-MONT';  // SKU for "Tagessatz Montage" — must exist in the Sheet's Zubehör tab
+
+/* ========================================================== PHOTOS (only in RAM for this session) ========================================================== */
+
+const PHOTO_MAX_SIZE = 1600;   // longest side in pixels
+const PHOTO_QUALITY = 0.82;    // JPEG quality
+
+function getPhotosFor(slotKey) {
+  return state.photos[slotKey] || [];
+}
+
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Datei konnte nicht gelesen werden'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Bild konnte nicht dekodiert werden'));
+      img.onload = () => {
+        let { width, height } = img;
+        const scale = Math.min(1, PHOTO_MAX_SIZE / Math.max(width, height));
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        // White background in case of transparent PNGs
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        try {
+          const dataUrl = canvas.toDataURL('image/jpeg', PHOTO_QUALITY);
+          resolve(dataUrl);
+        } catch(e) { reject(e); }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handlePhotoInput(slotKey, fileList) {
+  if (!fileList || !fileList.length) return;
+  const photos = state.photos[slotKey] || (state.photos[slotKey] = []);
+  const indicator = document.querySelector(`[data-photo-uploading="${slotKey}"]`);
+  if (indicator) indicator.style.display = 'inline';
+  let added = 0;
+  for (const file of fileList) {
+    if (!file.type.startsWith('image/')) continue;
+    try {
+      const dataUrl = await compressImage(file);
+      photos.push({
+        id: uid(),
+        dataUrl,
+        caption: '',
+        takenAt: new Date().toISOString(),
+      });
+      added++;
+    } catch (e) {
+      console.warn('Foto konnte nicht verarbeitet werden:', e);
+    }
+  }
+  if (indicator) indicator.style.display = 'none';
+  if (added) render();
+}
+
+function setPhotoCaption(slotKey, photoId, caption) {
+  const list = state.photos[slotKey];
+  if (!list) return;
+  const p = list.find(x => x.id === photoId);
+  if (p) p.caption = caption;
+}
+
+function deletePhoto(slotKey, photoId) {
+  if (!confirm('Foto wirklich entfernen?')) return;
+  const list = state.photos[slotKey];
+  if (!list) return;
+  state.photos[slotKey] = list.filter(x => x.id !== photoId);
+  if (state.photos[slotKey].length === 0) delete state.photos[slotKey];
+  render();
+}
+
+function openPhotoLightbox(dataUrl) {
+  const overlay = document.getElementById('photo-lightbox');
+  if (!overlay) return;
+  const img = overlay.querySelector('img');
+  if (img) img.src = dataUrl;
+  const cap = overlay.querySelector('[data-lightbox-caption]');
+  if (cap) cap.textContent = 'Tippe oder klicke außerhalb zum Schließen';
+  overlay.classList.add('open');
+}
+
+function openProductImage(url, label) {
+  const overlay = document.getElementById('photo-lightbox');
+  if (!overlay) return;
+  const img = overlay.querySelector('img');
+  if (img) img.src = url;
+  const cap = overlay.querySelector('[data-lightbox-caption]');
+  if (cap) cap.textContent = label || '';
+  overlay.classList.add('open');
+}
+
+function closePhotoLightbox() {
+  document.getElementById('photo-lightbox').classList.remove('open');
+}
+
+function hasAnyPhotos() {
+  return Object.values(state.photos || {}).some(arr => arr && arr.length > 0);
+}
+
+// Warn before page unload if there are unsaved photos
+window.addEventListener('beforeunload', (e) => {
+  if (hasAnyPhotos()) {
+    e.preventDefault();
+    e.returnValue = 'Du hast Fotos hinzugefügt, die noch nicht im Aufmaß-PDF gespeichert sind. Beim Schließen gehen sie verloren.';
+    return e.returnValue;
+  }
+});
 
 /* ========================================================== FILTERS & BRAND CONSISTENCY ========================================================== */
 
@@ -920,6 +1262,13 @@ function getProjectOutdoorBrand(excludeKey) {
   for (const rid in state.selectedOutdoorPerRoom) {
     if (rid === excludeKey) continue;
     const p = PRODUCTS_OUTDOOR.find(x => x.sku === state.selectedOutdoorPerRoom[rid]);
+    if (p && p.brand) counts[p.brand] = (counts[p.brand] || 0) + 1;
+  }
+  // Plus circles
+  for (const c of (state.outdoorCircles || [])) {
+    if (c.id === excludeKey) continue;
+    if (!c.sku) continue;
+    const p = PRODUCTS_OUTDOOR.find(x => x.sku === c.sku);
     if (p && p.brand) counts[p.brand] = (counts[p.brand] || 0) + 1;
   }
   const entries = Object.entries(counts);
@@ -959,7 +1308,10 @@ function matchesFilter(product, filter) {
 function setIndoorFilterBrand(roomId, brand) {
   state.indoorFilters[roomId] = state.indoorFilters[roomId] || {};
   state.indoorFilters[roomId].brand = brand;
-  render();
+  // Surgical: update only this room's block (filter bar + list)
+  const room = state.rooms.find(r => r.id === roomId);
+  const block = document.querySelector(`[data-indoor-room-block="${roomId}"]`);
+  if (room && block) block.outerHTML = renderIndoorRoomBlock(room);
 }
 
 function setIndoorFilterSearch(roomId, val) {
@@ -976,7 +1328,15 @@ function setIndoorFilterSearch(roomId, val) {
 function setOutdoorFilterBrand(key, brand) {
   state.outdoorFilters[key] = state.outdoorFilters[key] || {};
   state.outdoorFilters[key].brand = brand;
-  render();
+  // Surgical: update only this block
+  const block = document.querySelector(`[data-outdoor-room-block="${key}"]`);
+  if (!block) return;
+  if (key === 'shared') {
+    block.outerHTML = renderOutdoorShared();
+  } else {
+    const room = state.rooms.find(r => r.id === key);
+    if (room) block.outerHTML = renderOutdoorIndividualBlock(room);
+  }
 }
 
 function setOutdoorFilterSearch(key, val) {
@@ -1085,6 +1445,108 @@ function closeSettings() {
 function showSettingsTab(tabId) {
   document.querySelectorAll('[data-settings-tab]').forEach(b => b.classList.toggle('active', b.dataset.settingsTab === tabId));
   document.querySelectorAll('[data-settings-section]').forEach(s => s.style.display = s.dataset.settingsSection === tabId ? '' : 'none');
+  // The margin tab has nothing to save — hide the save button when it's active
+  const saveBtnWrap = document.getElementById('settings-save-wrap');
+  if (saveBtnWrap) saveBtnWrap.style.display = tabId === 'margin' ? 'none' : '';
+  // Render the margin view on demand (it depends on the current quote state)
+  if (tabId === 'margin') renderMarginView();
+}
+
+function renderMarginView() {
+  const container = document.getElementById('margin-content');
+  if (!container) return;
+  const m = calcMargin();
+
+  if (m.rows.length === 0 && m.excludedRows.length === 0) {
+    container.innerHTML = `
+      <div style="padding: 20px; text-align: center; color: var(--text-muted); background: var(--surface-warm); border-radius: var(--radius); font-size: 14px;">
+        Noch keine Positionen im Angebot.<br>
+        Konfiguriere zuerst Räume, Geräte und Zubehör.
+      </div>
+    `;
+    return;
+  }
+
+  const rowsHtml = m.rows.map(r => {
+    const isAdj = r.pos.type === 'adjustment';
+    const ekDisplay = r.hasEk
+      ? `${fmtEUR.format(r.ekUnit)} × ${fmtNum(r.pos.qty, r.pos.qty % 1 === 0 ? 0 : 1)} = ${fmtEUR.format(r.ekTotal)}`
+      : isAdj ? '<span style="color: var(--text-soft);">— (Anpassung)</span>'
+              : '<span style="color: #B91C1C;">⚠ kein EK im Sheet</span>';
+    const marginColor = r.marginPct < 20 ? '#B91C1C' : r.marginPct < 35 ? '#9B6B00' : '#15803D';
+    return `
+      <div class="margin-row">
+        <div class="margin-row-main">
+          <div class="margin-row-label">${escapeHtml(r.pos.label)}</div>
+          <div class="margin-row-ek">EK: ${ekDisplay}</div>
+        </div>
+        <div class="margin-row-numbers">
+          <div class="margin-row-vk">${fmtEUR.format(r.vk)}</div>
+          <div class="margin-row-margin" style="color: ${marginColor};">
+            ${r.hasEk || isAdj ? fmtEUR.format(r.margin) : '—'}
+            ${r.hasEk && r.vk > 0 ? `<span class="margin-row-pct">${fmtNum(r.marginPct, 1)} %</span>` : ''}
+          </div>
+        </div>
+        <button type="button" class="margin-row-remove" onclick="excludeFromMargin('${r.pos.key.replace(/'/g, "\\'")}')" title="Aus Margenrechnung ausblenden (Angebot bleibt unverändert)" aria-label="Position ausblenden">×</button>
+      </div>
+    `;
+  }).join('');
+
+  const excludedHtml = m.excludedRows.length > 0 ? `
+    <div class="margin-excluded-section">
+      <div class="margin-excluded-head">
+        <span>Ausgeblendet (${m.excludedRows.length})</span>
+        <button type="button" class="btn btn-ghost" style="font-size: 12px; padding: 4px 10px;" onclick="clearAllMarginExclusions()">Alle wiederherstellen</button>
+      </div>
+      ${m.excludedRows.map(r => `
+        <div class="margin-row margin-row-excluded">
+          <div class="margin-row-main">
+            <div class="margin-row-label">${escapeHtml(r.pos.label)}</div>
+            <div class="margin-row-ek">VK ${fmtEUR.format(r.vk)} · EK ${r.hasEk ? fmtEUR.format(r.ekTotal) : '—'}</div>
+          </div>
+          <button type="button" class="margin-row-restore" onclick="restoreToMargin('${r.pos.key.replace(/'/g, "\\'")}')" title="Wieder einblenden">↺</button>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+
+  const overallMarginColor = m.totalMarginPct < 20 ? '#B91C1C' : m.totalMarginPct < 35 ? '#9B6B00' : '#15803D';
+
+  container.innerHTML = `
+    <div class="margin-list">
+      ${rowsHtml}
+    </div>
+
+    ${excludedHtml}
+
+    ${m.unknownEkCount > 0 ? `
+      <div class="margin-warning">
+        ⚠ Für <strong>${m.unknownEkCount} Position${m.unknownEkCount !== 1 ? 'en' : ''}</strong> ist kein EK-Preis im Sheet hinterlegt. Diese werden als 100 % Marge gerechnet — das verfälscht die Gesamt-Marge nach oben.
+      </div>
+    ` : ''}
+
+    <div class="margin-summary">
+      <div class="margin-summary-row"><span>Gesamt-VK (netto)</span><span>${fmtEUR.format(m.totalVk)}</span></div>
+      <div class="margin-summary-row"><span>Gesamt-EK (netto)</span><span>${fmtEUR.format(m.totalEk)}</span></div>
+      <div class="margin-summary-row margin-summary-total" style="color: ${overallMarginColor};">
+        <span>Rohertrag</span>
+        <span>${fmtEUR.format(m.totalMargin)} <span style="font-size: 14px; opacity: 0.7;">(${fmtNum(m.totalMarginPct, 1)} %)</span></span>
+      </div>
+    </div>
+
+    <p style="margin-top: 14px; font-size: 11px; color: var(--text-soft); line-height: 1.5;">
+      <strong>Wichtig:</strong> Der Rohertrag enthält noch keine Arbeitszeit, Fahrzeugkosten, Versicherungen oder Verwaltungskosten. Für die tatsächliche Profitmarge müssen davon die internen Kosten abgezogen werden.
+    </p>
+
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="exportMarginPdf()">
+        📄 Als PDF speichern
+      </button>
+    </div>
+    <p style="margin-top: 6px; font-size: 11px; color: var(--text-soft); text-align: center;">
+      Hinweis: PDF enthält interne EK-Preise und Margen — <strong>nicht an Kunden weitergeben</strong>.
+    </p>
+  `;
 }
 
 function saveSettings() {
@@ -1207,6 +1669,13 @@ function validateStep() {
   if (s === 'indoor') valid = state.rooms.every(r => state.selectedDevices[r.id]);
   if (s === 'outdoor') {
     if (state.outdoorMode === 'shared') valid = !!state.selectedOutdoor;
+    else if (state.outdoorMode === 'circles') {
+      // Every room must be assigned, every non-empty circle must have an outdoor unit
+      const unassigned = getUnassignedRooms();
+      const circlesValid = state.outdoorCircles.every(c => c.roomIds.length === 0 || c.sku);
+      const hasAnyCircle = state.outdoorCircles.some(c => c.roomIds.length > 0 && c.sku);
+      valid = unassigned.length === 0 && circlesValid && hasAnyCircle;
+    }
     else valid = state.rooms.every(r => state.selectedOutdoorPerRoom[r.id]);
   }
   next.disabled = !valid;
@@ -1214,24 +1683,40 @@ function validateStep() {
 
 function goNext() {
   if (state.stepIndex === STEPS.length - 1) return;
-  if (STEPS[state.stepIndex + 1].id === 'extras' && state.extras.length === 0) autoPrefillExtras();
+  if (STEPS[state.stepIndex + 1].id === 'extras' && !state.extrasPrefilled) autoPrefillExtras();
+  if (STEPS[state.stepIndex + 1].id === 'extras') syncMontageExtra();
   state.stepIndex++;
   render();
 }
 function goPrev() { if (state.stepIndex === 0) return; state.stepIndex--; render(); }
 
+let lastRenderedStepId = null;
+
 function render() {
   renderTopbar();
   const main = document.getElementById('main');
   const id = STEPS[state.stepIndex].id;
+
+  // Preserve scroll position if we're staying on the same step (e.g. filter change, selection update)
+  const isStepChange = lastRenderedStepId !== id;
+  const savedScroll = isStepChange ? 0 : (window.scrollY || window.pageYOffset || 0);
+
   if (id === 'customer') main.innerHTML = renderCustomerScreen();
   if (id === 'rooms') main.innerHTML = renderRoomsScreen();
   if (id === 'indoor') main.innerHTML = renderIndoorScreen();
   if (id === 'outdoor') main.innerHTML = renderOutdoorScreen();
+  if (id === 'doku') main.innerHTML = renderDokuScreen();
   if (id === 'extras') main.innerHTML = renderExtrasScreen();
   if (id === 'summary') main.innerHTML = renderSummaryScreen();
   renderBottomNav();
-  window.scrollTo({ top: 0, behavior: 'instant' });
+
+  if (isStepChange) {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    lastRenderedStepId = id;
+  } else {
+    // Restore the previous scroll position immediately, before the browser paints
+    window.scrollTo({ top: savedScroll, behavior: 'instant' });
+  }
 }
 
 /* ========================================================== SCREENS ========================================================== */
@@ -1365,14 +1850,27 @@ function updateRoomHeadSummary(room) { const card = document.querySelector(`[dat
 /* ========================================================== INDOOR DEVICES ========================================================== */
 
 function deviceRowHtml(roomId, p, selectedSku) {
+  const thumb = p.imageUrl
+    ? `<button type="button" class="device-thumb" onclick="event.stopPropagation(); openProductImage('${p.imageUrl.replace(/'/g, "\\'")}', '${(p.brand + ' ' + p.name).replace(/'/g, "\\'")}')" title="Großes Produktbild anzeigen">
+         <img src="${p.imageUrl}" alt="${escapeHtml(p.brand + ' ' + p.name)}" onerror="this.parentElement.style.display='none'">
+       </button>`
+    : '';
   return `<div class="device-row ${selectedSku === p.sku ? 'selected' : ''}" data-indoor-row="${roomId}-${p.sku}" onclick="selectDevice('${roomId}','${p.sku}')">
-    <div><div class="device-brand">${p.brand}</div><div class="device-name">${p.name}</div>
-    <div class="device-spec">${p.kw} kW · ${p.type}${p.sound ? ' · ' + p.sound : ''}</div>
-    ${p.features && p.features.length ? `<div class="device-features">${p.features.map(f => `<span class="device-feature-tag">${f}</span>`).join('')}</div>` : ''}</div>
-    <div class="device-price">${fmtEUR.format(p.price)}</div></div>`;
+    <div class="device-row-content">
+      <div class="device-row-text">
+        <div class="device-brand">${p.brand}</div>
+        <div class="device-name">${p.name}</div>
+        <div class="device-spec">${p.kw} kW · ${p.type}${p.sound ? ' · ' + p.sound : ''}</div>
+        ${p.features && p.features.length ? `<div class="device-features">${p.features.map(f => `<span class="device-feature-tag">${f}</span>`).join('')}</div>` : ''}
+      </div>
+      ${thumb}
+    </div>
+    <div class="device-price">${fmtEUR.format(p.price)}</div>
+  </div>`;
 }
 
 function renderIndoorScreen() {
+  const hasMultipleRooms = state.rooms.length > 1;
   return `
     <section class="screen">
       <div class="screen-header">
@@ -1380,6 +1878,12 @@ function renderIndoorScreen() {
         <h1 class="screen-title"><span class="accent">Innengeräte</span> wählen</h1>
         <p class="screen-subtitle">Pro Raum ein passendes Innengerät. Suche oder filtere nach Marke.</p>
       </div>
+      ${hasMultipleRooms ? `
+        <div class="collapse-all-row">
+          <button type="button" class="btn-link" onclick="collapseAllIndoorRooms(true)">Alle einklappen</button>
+          <button type="button" class="btn-link" onclick="collapseAllIndoorRooms(false)">Alle ausklappen</button>
+        </div>
+      ` : ''}
       ${state.rooms.map(room => renderIndoorRoomBlock(room)).join('')}
     </section>
   `;
@@ -1388,23 +1892,55 @@ function renderIndoorScreen() {
 function renderIndoorRoomBlock(room) {
   const filter = getIndoorFilter(room.id);
   const brands = getAllBrands(PRODUCTS_INDOOR);
+  const isCollapsed = !!state.collapsedIndoorRooms[room.id];
+  const selectedSku = state.selectedDevices[room.id];
+  const selectedProduct = selectedSku ? PRODUCTS_INDOOR.find(p => p.sku === selectedSku) : null;
+
   return `
-    <div class="device-room-block" data-indoor-room-block="${room.id}">
-      <div class="device-room-head">
-        <span class="device-room-head-title">${room.name || 'Raum'}</span>
-        <span class="device-room-head-meta">${room.area} m² · benötigt ${fmtNum(room.finalKw,1)} kW</span>
+    <div class="device-room-block ${isCollapsed ? 'is-collapsed' : ''}" data-indoor-room-block="${room.id}">
+      <div class="device-room-head device-room-head-clickable" onclick="toggleIndoorRoomCollapsed('${room.id}')">
+        <div style="flex: 1; min-width: 0;">
+          <div class="device-room-head-title">${escapeHtml(room.name || 'Raum')}</div>
+          <div class="device-room-head-meta">
+            ${room.area} m² · benötigt ${fmtNum(room.finalKw,1)} kW
+            ${isCollapsed && selectedProduct ? ` · <span style="color: var(--accent); font-weight: 500;">${escapeHtml(selectedProduct.brand + ' ' + selectedProduct.name)}</span>` : ''}
+            ${isCollapsed && !selectedProduct ? ` · <span style="color: #B91C1C; font-weight: 500;">noch nicht gewählt</span>` : ''}
+          </div>
+        </div>
+        <button type="button" class="room-collapse-btn" aria-label="${isCollapsed ? 'Ausklappen' : 'Einklappen'}" onclick="event.stopPropagation(); toggleIndoorRoomCollapsed('${room.id}')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.2s; transform: rotate(${isCollapsed ? '-90deg' : '0deg'});"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
       </div>
-      ${renderFilterBar({
-        brands,
-        currentBrand: filter.brand,
-        search: filter.search,
-        onBrandClick: `setIndoorFilterBrand('${room.id}', __BRAND__)`,
-        onSearchInput: `setIndoorFilterSearch('${room.id}', this.value)`,
-        onSearchClear: `setIndoorFilterSearch('${room.id}', '')`,
-      })}
-      <div data-indoor-lists="${room.id}">${renderIndoorRoomLists(room)}</div>
+      ${isCollapsed ? '' : `
+        ${renderFilterBar({
+          brands,
+          currentBrand: filter.brand,
+          search: filter.search,
+          onBrandClick: `setIndoorFilterBrand('${room.id}', __BRAND__)`,
+          onSearchInput: `setIndoorFilterSearch('${room.id}', this.value)`,
+          onSearchClear: `setIndoorFilterSearch('${room.id}', '')`,
+        })}
+        <div data-indoor-lists="${room.id}">${renderIndoorRoomLists(room)}</div>
+      `}
     </div>
   `;
+}
+
+function toggleIndoorRoomCollapsed(roomId) {
+  state.collapsedIndoorRooms[roomId] = !state.collapsedIndoorRooms[roomId];
+  // Surgical update — replace only this block
+  const room = state.rooms.find(r => r.id === roomId);
+  const block = document.querySelector(`[data-indoor-room-block="${roomId}"]`);
+  if (room && block) block.outerHTML = renderIndoorRoomBlock(room);
+}
+
+function collapseAllIndoorRooms(collapse) {
+  for (const room of state.rooms) state.collapsedIndoorRooms[room.id] = collapse;
+  // Re-render all blocks
+  for (const room of state.rooms) {
+    const block = document.querySelector(`[data-indoor-room-block="${room.id}"]`);
+    if (block) block.outerHTML = renderIndoorRoomBlock(room);
+  }
 }
 
 function renderIndoorRoomLists(room) {
@@ -1447,15 +1983,32 @@ function renderIndoorRoomLists(room) {
   return html;
 }
 
-function toggleAllDevices(roomId) { state.expandAllDevices[roomId] = !state.expandAllDevices[roomId]; render(); }
+function toggleAllDevices(roomId) {
+  state.expandAllDevices[roomId] = !state.expandAllDevices[roomId];
+  const listsContainer = document.querySelector(`[data-indoor-lists="${roomId}"]`);
+  if (listsContainer) {
+    const room = state.rooms.find(r => r.id === roomId);
+    if (room) listsContainer.innerHTML = renderIndoorRoomLists(room);
+  }
+}
 function selectDevice(roomId, sku) {
   const previousBrand = getProjectIndoorBrand();
   state.selectedDevices[roomId] = sku;
   document.querySelectorAll(`[data-indoor-row^="${roomId}-"]`).forEach(row => row.classList.toggle('selected', row.dataset.indoorRow === `${roomId}-${sku}`));
   validateStep();
-  // If selecting introduced a new dominant brand, re-render so other rooms pick it up automatically
+
+  // If selecting introduced a new dominant brand, update OTHER rooms' brand chips/lists surgically
+  // (not this room, since we want to keep its scroll position)
   const newBrand = getProjectIndoorBrand();
-  if (newBrand && newBrand !== previousBrand) render();
+  if (newBrand && newBrand !== previousBrand) {
+    for (const otherRoom of state.rooms) {
+      if (otherRoom.id === roomId) continue;
+      // Only update rooms that don't have an explicit brand choice already
+      if (state.indoorFilters[otherRoom.id] && 'brand' in state.indoorFilters[otherRoom.id]) continue;
+      const block = document.querySelector(`[data-indoor-room-block="${otherRoom.id}"]`);
+      if (block) block.outerHTML = renderIndoorRoomBlock(otherRoom);
+    }
+  }
 }
 
 /* ========================================================== OUTDOOR DEVICES ========================================================== */
@@ -1466,7 +2019,7 @@ function renderOutdoorScreen() {
       <div class="screen-header">
         <div class="screen-label">Schritt 4 · Außengeräte</div>
         <h1 class="screen-title"><span class="accent">Außengeräte</span> wählen</h1>
-        <p class="screen-subtitle">Eine gemeinsame Multi-Split-Anlage oder ein eigenes Außengerät pro Raum?</p>
+        <p class="screen-subtitle">Standard-Modus oder gemischte Außenkreise (Single + Multi kombiniert)?</p>
       </div>
       <div class="outdoor-mode-grid">
         <button type="button" class="option-card ${state.outdoorMode === 'individual' ? 'selected' : ''}" onclick="setOutdoorMode('individual')">
@@ -1474,14 +2027,258 @@ function renderOutdoorScreen() {
           <div class="option-card-desc">Jeder Raum bekommt sein eigenes Single-Split-Außengerät.</div></button>
         <button type="button" class="option-card ${state.outdoorMode === 'shared' ? 'selected' : ''}" onclick="setOutdoorMode('shared')">
           <div class="option-card-title">Ein gemeinsames Außengerät</div>
-          <div class="option-card-desc">Alle Innengeräte werden an ein Multi-Split-Außengerät angeschlossen.</div></button>
+          <div class="option-card-desc">Alle Innengeräte an einer Multi-Split-Außeneinheit.</div></button>
+        <button type="button" class="option-card ${state.outdoorMode === 'circles' ? 'selected' : ''}" onclick="setOutdoorMode('circles')">
+          <div class="option-card-title">Außenkreise (gemischt)</div>
+          <div class="option-card-desc">Manuelle Gruppierung — z.&nbsp;B. ein Multi-Split für Wohnbereich und ein Single-Split für Schlafzimmer.</div></button>
       </div>
-      <div id="outdoor-selection">${state.outdoorMode === 'shared' ? renderOutdoorShared() : renderOutdoorIndividual()}</div>
+      <div id="outdoor-selection">${
+        state.outdoorMode === 'shared' ? renderOutdoorShared() :
+        state.outdoorMode === 'circles' ? renderOutdoorCircles() :
+        renderOutdoorIndividual()
+      }</div>
     </section>
   `;
 }
 
-function setOutdoorMode(mode) { state.outdoorMode = mode; if (mode === 'shared') state.selectedOutdoorPerRoom = {}; if (mode === 'individual') state.selectedOutdoor = null; render(); }
+function setOutdoorMode(mode) {
+  state.outdoorMode = mode;
+  if (mode === 'shared') state.selectedOutdoorPerRoom = {};
+  if (mode === 'individual') state.selectedOutdoor = null;
+  if (mode === 'circles') {
+    state.selectedOutdoor = null;
+    state.selectedOutdoorPerRoom = {};
+    // If no circles exist yet, create a starting one with all rooms grouped
+    if (!state.outdoorCircles || state.outdoorCircles.length === 0) {
+      state.outdoorCircles = [{
+        id: uid(),
+        roomIds: state.rooms.map(r => r.id),
+        sku: null,
+      }];
+    }
+  }
+  render();
+}
+
+/* ========================================================== AUSSENKREISE (mixed Single + Multi) ========================================================== */
+
+function getRoomsInOtherCircles(currentCircleId) {
+  const ids = new Set();
+  for (const c of state.outdoorCircles) {
+    if (c.id === currentCircleId) continue;
+    for (const rid of c.roomIds) ids.add(rid);
+  }
+  return ids;
+}
+
+function getUnassignedRooms() {
+  const assigned = new Set();
+  for (const c of state.outdoorCircles) for (const rid of c.roomIds) assigned.add(rid);
+  return state.rooms.filter(r => !assigned.has(r.id));
+}
+
+function addOutdoorCircle() {
+  state.outdoorCircles.push({ id: uid(), roomIds: [], sku: null });
+  render();
+}
+
+function removeOutdoorCircle(circleId) {
+  if (!confirm('Diesen Außenkreis entfernen? Die Räume werden danach keinem Kreis mehr zugeordnet sein.')) return;
+  state.outdoorCircles = state.outdoorCircles.filter(c => c.id !== circleId);
+  if (state.outdoorCircles.length === 0) {
+    // Always keep at least one empty circle so the user has something to configure
+    state.outdoorCircles.push({ id: uid(), roomIds: [], sku: null });
+  }
+  render();
+}
+
+function toggleRoomInCircle(circleId, roomId) {
+  const circle = state.outdoorCircles.find(c => c.id === circleId);
+  if (!circle) return;
+  // If room is in another circle, remove it from there first
+  for (const c of state.outdoorCircles) {
+    if (c.id === circleId) continue;
+    c.roomIds = c.roomIds.filter(r => r !== roomId);
+  }
+  // Toggle in this circle
+  if (circle.roomIds.includes(roomId)) {
+    circle.roomIds = circle.roomIds.filter(r => r !== roomId);
+  } else {
+    circle.roomIds.push(roomId);
+  }
+  // If sku was set but no longer fits the new room count, clear it
+  // (gives user a chance to pick again)
+  // Surgical update: re-render only outdoor selection container
+  const sel = document.getElementById('outdoor-selection');
+  if (sel) sel.innerHTML = renderOutdoorCircles();
+}
+
+function selectOutdoorForCircle(circleId, sku) {
+  const circle = state.outdoorCircles.find(c => c.id === circleId);
+  if (!circle) return;
+  circle.sku = sku;
+  validateStep();
+  // Surgical: update selected class within this circle's list
+  document.querySelectorAll(`[data-circle-outdoor^="${circleId}-"]`).forEach(row => {
+    row.classList.toggle('selected', row.dataset.circleOutdoor === `${circleId}-${sku}`);
+  });
+}
+
+function toggleOutdoorCircleCollapsed(circleId) {
+  state.collapsedOutdoorRooms[circleId] = !state.collapsedOutdoorRooms[circleId];
+  const block = document.querySelector(`[data-outdoor-circle-block="${circleId}"]`);
+  if (block) {
+    const circle = state.outdoorCircles.find(c => c.id === circleId);
+    if (circle) block.outerHTML = renderOutdoorCircleBlock(circle);
+  }
+}
+
+function toggleAllOutdoorCircle(circleId) {
+  state.expandAllOutdoorPerRoom[circleId] = !state.expandAllOutdoorPerRoom[circleId];
+  const listsContainer = document.querySelector(`[data-outdoor-circle-lists="${circleId}"]`);
+  if (listsContainer) {
+    const circle = state.outdoorCircles.find(c => c.id === circleId);
+    if (circle) listsContainer.innerHTML = renderOutdoorCircleLists(circle);
+  }
+}
+
+function renderOutdoorCircles() {
+  const unassigned = getUnassignedRooms();
+  return `
+    <div class="outdoor-circles-wrap">
+      ${state.outdoorCircles.map((c, i) => renderOutdoorCircleBlock(c, i)).join('')}
+
+      <button type="button" class="btn-add" onclick="addOutdoorCircle()" style="margin-top: 8px;">
+        + Außenkreis hinzufügen
+      </button>
+
+      ${unassigned.length > 0 ? `
+        <div class="circles-warning">
+          ⚠ Diese Räume sind <strong>keinem</strong> Außenkreis zugeordnet:
+          <strong>${unassigned.map(r => escapeHtml(r.name || 'Raum')).join(', ')}</strong> —
+          ordne sie einem Kreis zu, sonst fehlen sie im Angebot.
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderOutdoorCircleBlock(circle, indexHint) {
+  const idx = indexHint !== undefined ? indexHint : state.outdoorCircles.findIndex(c => c.id === circle.id);
+  const isCollapsed = !!state.collapsedOutdoorRooms[circle.id];
+  const filter = getOutdoorFilter(circle.id);
+  const brands = getAllBrands(PRODUCTS_OUTDOOR);
+
+  // Stats for this circle
+  const roomsInCircle = state.rooms.filter(r => circle.roomIds.includes(r.id));
+  const totalKw = roomsInCircle.reduce((s, r) => s + (r.finalKw || 0), 0);
+  const selectedProduct = circle.sku ? PRODUCTS_OUTDOOR.find(p => p.sku === circle.sku) : null;
+
+  // Header summary
+  const headerMeta = roomsInCircle.length === 0
+    ? `<span style="color: #B91C1C;">noch keine Räume zugeordnet</span>`
+    : `${roomsInCircle.length} ${roomsInCircle.length === 1 ? 'Raum' : 'Räume'} · ${fmtNum(totalKw, 1)} kW gesamt`;
+
+  return `
+    <div class="device-room-block ${isCollapsed ? 'is-collapsed' : ''}" data-outdoor-circle-block="${circle.id}">
+      <div class="device-room-head device-room-head-clickable" onclick="toggleOutdoorCircleCollapsed('${circle.id}')">
+        <div style="flex: 1; min-width: 0;">
+          <div class="device-room-head-title">Außenkreis ${idx + 1}</div>
+          <div class="device-room-head-meta">
+            ${headerMeta}
+            ${isCollapsed && selectedProduct ? ` · <span style="color: var(--accent); font-weight: 500;">${escapeHtml(selectedProduct.brand + ' ' + selectedProduct.name)}</span>` : ''}
+            ${isCollapsed && !selectedProduct && roomsInCircle.length > 0 ? ` · <span style="color: #B91C1C; font-weight: 500;">noch nicht gewählt</span>` : ''}
+          </div>
+        </div>
+        <button type="button" class="room-collapse-btn" onclick="event.stopPropagation(); toggleOutdoorCircleCollapsed('${circle.id}')" aria-label="${isCollapsed ? 'Ausklappen' : 'Einklappen'}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(${isCollapsed ? '-90deg' : '0deg'});"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+
+      ${isCollapsed ? '' : `
+        <div class="circle-rooms-picker">
+          <div class="circle-rooms-label">Räume in diesem Kreis:</div>
+          <div class="circle-rooms-grid">
+            ${state.rooms.map(room => {
+              const isChecked = circle.roomIds.includes(room.id);
+              const isInOther = !isChecked && Array.from(getRoomsInOtherCircles(circle.id)).includes(room.id);
+              return `
+                <label class="circle-room-checkbox ${isChecked ? 'checked' : ''} ${isInOther ? 'is-in-other' : ''}">
+                  <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleRoomInCircle('${circle.id}', '${room.id}')">
+                  <span class="circle-room-label">
+                    <span class="circle-room-name">${escapeHtml(room.name || 'Raum')}</span>
+                    <span class="circle-room-kw">${fmtNum(room.finalKw, 1)} kW</span>
+                  </span>
+                  ${isInOther ? '<span class="circle-room-elsewhere">in anderem Kreis</span>' : ''}
+                </label>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        ${roomsInCircle.length > 0 ? `
+          ${renderFilterBar({
+            brands,
+            currentBrand: filter.brand,
+            search: filter.search,
+            onBrandClick: `setOutdoorFilterBrand('${circle.id}', __BRAND__)`,
+            onSearchInput: `setOutdoorFilterSearch('${circle.id}', this.value)`,
+            onSearchClear: `setOutdoorFilterSearch('${circle.id}', '')`,
+          })}
+          <div data-outdoor-circle-lists="${circle.id}">${renderOutdoorCircleLists(circle)}</div>
+        ` : `
+          <div class="filter-empty" style="margin-top: 12px;">Wähle zuerst mindestens einen Raum für diesen Kreis aus.</div>
+        `}
+
+        ${state.outdoorCircles.length > 1 ? `
+          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); text-align: right;">
+            <button type="button" class="btn-link btn-link-danger" onclick="removeOutdoorCircle('${circle.id}')">Diesen Kreis entfernen</button>
+          </div>
+        ` : ''}
+      `}
+    </div>
+  `;
+}
+
+function renderOutdoorCircleLists(circle) {
+  const filter = getOutdoorFilter(circle.id);
+  const roomsInCircle = state.rooms.filter(r => circle.roomIds.includes(r.id));
+  const numRooms = roomsInCircle.length;
+  const totalKw = roomsInCircle.reduce((s, r) => s + (r.finalKw || 0), 0);
+
+  const filtered = PRODUCTS_OUTDOOR.filter(p => matchesFilter(p, filter));
+
+  // Recommendations based on how many rooms are in the circle
+  let recommended;
+  if (numRooms === 1) {
+    recommended = filtered.filter(p => p.type === 'Single-Split' && Math.abs(p.kw - totalKw) <= 0.6);
+  } else {
+    recommended = filtered.filter(p => p.type === 'Multi-Split' && p.slots >= numRooms && p.kw >= totalKw * 0.8);
+  }
+  const others = filtered.filter(p => !recommended.includes(p));
+  const showAll = !!state.expandAllOutdoorPerRoom[circle.id] || recommended.length === 0;
+
+  if (filtered.length === 0) {
+    return `<div class="filter-empty">Keine Außengeräte gefunden. ${filter.brand || filter.search ? 'Filter zurücksetzen oder anderen Suchbegriff probieren.' : ''}</div>`;
+  }
+
+  let html = '';
+  if (recommended.length > 0) {
+    const label = numRooms === 1
+      ? (filter.brand ? `Empfehlung Single-Split · ${filter.brand}` : `Empfehlung Single-Split`)
+      : (filter.brand ? `Empfehlung Multi-Split (${numRooms} Innen) · ${filter.brand}` : `Empfehlung Multi-Split (${numRooms} Innen)`);
+    html += `<div class="device-section-label">${label}</div>`;
+    html += `<div class="device-list" style="margin-bottom: 12px;">${recommended.map(p => outdoorRowHtml(p, circle.sku, 'circle', circle.id)).join('')}</div>`;
+  }
+  if (showAll && others.length > 0) {
+    html += `<div class="device-section-label" style="margin-top: ${recommended.length > 0 ? '20px' : '0'};">${recommended.length > 0 ? 'Andere Geräte' : 'Gesamtes gefiltertes Sortiment'}</div>`;
+    html += `<div class="device-list">${others.map(p => outdoorRowHtml(p, circle.sku, 'circle', circle.id)).join('')}</div>`;
+    if (state.expandAllOutdoorPerRoom[circle.id]) html += `<button type="button" class="btn btn-ghost" style="margin-top: 10px; font-size: 13px;" onclick="toggleAllOutdoorCircle('${circle.id}')">Nur Empfehlungen zeigen</button>`;
+  } else if (others.length > 0) {
+    html += `<button type="button" class="btn btn-secondary btn-block" onclick="toggleAllOutdoorCircle('${circle.id}')" style="margin-top: 10px;">Andere Außengeräte zeigen (${others.length})</button>`;
+  }
+  return html;
+}
 
 function renderOutdoorShared() {
   const totalRooms = state.rooms.length;
@@ -1547,23 +2344,45 @@ function renderOutdoorIndividual() {
 function renderOutdoorIndividualBlock(room) {
   const filter = getOutdoorFilter(room.id);
   const brands = getAllBrands(PRODUCTS_OUTDOOR);
+  const isCollapsed = !!state.collapsedOutdoorRooms[room.id];
+  const selectedSku = state.selectedOutdoorPerRoom[room.id];
+  const selectedProduct = selectedSku ? PRODUCTS_OUTDOOR.find(p => p.sku === selectedSku) : null;
+
   return `
-    <div class="device-room-block" data-outdoor-room-block="${room.id}">
-      <div class="device-room-head">
-        <span class="device-room-head-title">${room.name || 'Raum'}</span>
-        <span class="device-room-head-meta">benötigt ${fmtNum(room.finalKw, 1)} kW</span>
+    <div class="device-room-block ${isCollapsed ? 'is-collapsed' : ''}" data-outdoor-room-block="${room.id}">
+      <div class="device-room-head device-room-head-clickable" onclick="toggleOutdoorRoomCollapsed('${room.id}')">
+        <div style="flex: 1; min-width: 0;">
+          <div class="device-room-head-title">${escapeHtml(room.name || 'Raum')}</div>
+          <div class="device-room-head-meta">
+            benötigt ${fmtNum(room.finalKw, 1)} kW
+            ${isCollapsed && selectedProduct ? ` · <span style="color: var(--accent); font-weight: 500;">${escapeHtml(selectedProduct.brand + ' ' + selectedProduct.name)}</span>` : ''}
+            ${isCollapsed && !selectedProduct ? ` · <span style="color: #B91C1C; font-weight: 500;">noch nicht gewählt</span>` : ''}
+          </div>
+        </div>
+        <button type="button" class="room-collapse-btn" onclick="event.stopPropagation(); toggleOutdoorRoomCollapsed('${room.id}')" aria-label="${isCollapsed ? 'Ausklappen' : 'Einklappen'}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(${isCollapsed ? '-90deg' : '0deg'});"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
       </div>
-      ${renderFilterBar({
-        brands,
-        currentBrand: filter.brand,
-        search: filter.search,
-        onBrandClick: `setOutdoorFilterBrand('${room.id}', __BRAND__)`,
-        onSearchInput: `setOutdoorFilterSearch('${room.id}', this.value)`,
-        onSearchClear: `setOutdoorFilterSearch('${room.id}', '')`,
-      })}
-      <div data-outdoor-lists="${room.id}">${renderOutdoorIndividualLists(room)}</div>
+      ${isCollapsed ? '' : `
+        ${renderFilterBar({
+          brands,
+          currentBrand: filter.brand,
+          search: filter.search,
+          onBrandClick: `setOutdoorFilterBrand('${room.id}', __BRAND__)`,
+          onSearchInput: `setOutdoorFilterSearch('${room.id}', this.value)`,
+          onSearchClear: `setOutdoorFilterSearch('${room.id}', '')`,
+        })}
+        <div data-outdoor-lists="${room.id}">${renderOutdoorIndividualLists(room)}</div>
+      `}
     </div>
   `;
+}
+
+function toggleOutdoorRoomCollapsed(roomId) {
+  state.collapsedOutdoorRooms[roomId] = !state.collapsedOutdoorRooms[roomId];
+  const room = state.rooms.find(r => r.id === roomId);
+  const block = document.querySelector(`[data-outdoor-room-block="${roomId}"]`);
+  if (room && block) block.outerHTML = renderOutdoorIndividualBlock(room);
 }
 
 function renderOutdoorIndividualLists(room) {
@@ -1596,14 +2415,35 @@ function renderOutdoorIndividualLists(room) {
   return html;
 }
 
-function outdoorRowHtml(p, selectedSku, mode, roomId) {
-  const onclickAttr = mode === 'shared' ? `selectSharedOutdoor('${p.sku}')` : `selectOutdoorForRoom('${roomId}', '${p.sku}')`;
-  const dataAttr = mode === 'shared' ? `data-shared-outdoor="${p.sku}"` : `data-individual-outdoor="${roomId}-${p.sku}"`;
+function outdoorRowHtml(p, selectedSku, mode, roomOrCircleId) {
+  let onclickAttr, dataAttr;
+  if (mode === 'shared') {
+    onclickAttr = `selectSharedOutdoor('${p.sku}')`;
+    dataAttr = `data-shared-outdoor="${p.sku}"`;
+  } else if (mode === 'circle') {
+    onclickAttr = `selectOutdoorForCircle('${roomOrCircleId}', '${p.sku}')`;
+    dataAttr = `data-circle-outdoor="${roomOrCircleId}-${p.sku}"`;
+  } else {
+    onclickAttr = `selectOutdoorForRoom('${roomOrCircleId}', '${p.sku}')`;
+    dataAttr = `data-individual-outdoor="${roomOrCircleId}-${p.sku}"`;
+  }
+  const thumb = p.imageUrl
+    ? `<button type="button" class="device-thumb" onclick="event.stopPropagation(); openProductImage('${p.imageUrl.replace(/'/g, "\\'")}', '${(p.brand + ' ' + p.name).replace(/'/g, "\\'")}')" title="Großes Produktbild anzeigen">
+         <img src="${p.imageUrl}" alt="${escapeHtml(p.brand + ' ' + p.name)}" onerror="this.parentElement.style.display='none'">
+       </button>`
+    : '';
   return `<div class="device-row ${selectedSku === p.sku ? 'selected' : ''}" ${dataAttr} onclick="${onclickAttr}">
-    <div><div class="device-brand">${p.brand}</div><div class="device-name">${p.name}</div>
-    <div class="device-spec">${p.kw} kW · ${p.type}${p.slots > 1 ? ' · bis ' + p.slots + ' Innengeräte' : ''}</div>
-    ${p.features && p.features.length ? `<div class="device-features">${p.features.map(f => `<span class="device-feature-tag">${f}</span>`).join('')}</div>` : ''}</div>
-    <div class="device-price">${fmtEUR.format(p.price)}</div></div>`;
+    <div class="device-row-content">
+      <div class="device-row-text">
+        <div class="device-brand">${p.brand}</div>
+        <div class="device-name">${p.name}</div>
+        <div class="device-spec">${p.kw} kW · ${p.type}${p.slots > 1 ? ' · bis ' + p.slots + ' Innengeräte' : ''}</div>
+        ${p.features && p.features.length ? `<div class="device-features">${p.features.map(f => `<span class="device-feature-tag">${f}</span>`).join('')}</div>` : ''}
+      </div>
+      ${thumb}
+    </div>
+    <div class="device-price">${fmtEUR.format(p.price)}</div>
+  </div>`;
 }
 
 function selectSharedOutdoor(sku) {
@@ -1618,35 +2458,170 @@ function selectOutdoorForRoom(roomId, sku) {
   document.querySelectorAll(`[data-individual-outdoor^="${roomId}-"]`).forEach(row => row.classList.toggle('selected', row.dataset.individualOutdoor === `${roomId}-${sku}`));
   validateStep();
   const next = getProjectOutdoorBrand();
-  if (next && next !== prev) render();
+  if (next && next !== prev) {
+    // Surgical: update OTHER rooms only (preserve scroll for current selection)
+    for (const otherRoom of state.rooms) {
+      if (otherRoom.id === roomId) continue;
+      if (state.outdoorFilters[otherRoom.id] && 'brand' in state.outdoorFilters[otherRoom.id]) continue;
+      const block = document.querySelector(`[data-outdoor-room-block="${otherRoom.id}"]`);
+      if (block) block.outerHTML = renderOutdoorIndividualBlock(otherRoom);
+    }
+  }
 }
-function toggleAllOutdoorShared() { state.expandAllOutdoor = !state.expandAllOutdoor; render(); }
-function toggleAllOutdoorPerRoom(roomId) { state.expandAllOutdoorPerRoom[roomId] = !state.expandAllOutdoorPerRoom[roomId]; render(); }
+function toggleAllOutdoorShared() {
+  state.expandAllOutdoor = !state.expandAllOutdoor;
+  const listsContainer = document.querySelector('[data-outdoor-lists="shared"]');
+  if (listsContainer) listsContainer.innerHTML = renderOutdoorSharedLists();
+}
+function toggleAllOutdoorPerRoom(roomId) {
+  state.expandAllOutdoorPerRoom[roomId] = !state.expandAllOutdoorPerRoom[roomId];
+  const listsContainer = document.querySelector(`[data-outdoor-lists="${roomId}"]`);
+  if (listsContainer) {
+    const room = state.rooms.find(r => r.id === roomId);
+    if (room) listsContainer.innerHTML = renderOutdoorIndividualLists(room);
+  }
+}
 
 /* ========================================================== EXTRAS ========================================================== */
 
 function autoPrefillExtras() {
   const n = state.rooms.length;
-  const outdoorCount = state.outdoorMode === 'shared' ? 1 : n;
-  state.extras = [
+  // Count outdoor units depending on mode
+  let outdoorCount;
+  if (state.outdoorMode === 'shared') outdoorCount = 1;
+  else if (state.outdoorMode === 'circles') outdoorCount = state.outdoorCircles.filter(c => c.sku && c.roomIds.length > 0).length || 1;
+  else outdoorCount = n;
+  // Keep any extras that were already added (e.g. Tagessatz Montage from the doku step)
+  const existing = state.extras || [];
+  const defaultExtras = [
     { sku: 'ACC-KONS', qty: outdoorCount },
     { sku: 'ACC-DURCH', qty: n },
     { sku: 'ACC-LEIT', qty: n * 5 },
     { sku: 'ACC-KAB', qty: n * 5 },
-    { sku: 'ACC-ELEK', qty: outdoorCount },
+    // Elektroanschluss bewusst NICHT auto-prefilled — nur durch zertifizierten Elektriker zulässig.
+    // Position bleibt im Katalog und kann bei Bedarf manuell hinzugefügt werden.
     { sku: 'ACC-INB', qty: 1 },
     { sku: 'ACC-FAHRT', qty: 1 },
   ];
+  // Merge: add defaults only if not already present (e.g. ACC-MONT from doku is preserved)
+  for (const def of defaultExtras) {
+    if (!existing.some(e => e.sku === def.sku)) existing.push(def);
+  }
+  state.extras = existing;
+  state.extrasPrefilled = true;
+}
+
+/* ========================================================== DOKU SCREEN (photos + montage days) ========================================================== */
+
+function renderDokuScreen() {
+  return `
+    <section class="screen">
+      <div class="screen-header">
+        <div class="screen-label">Schritt 5 · Dokumentation</div>
+        <h1 class="screen-title"><span class="accent">Fotos</span> &amp; Montagedauer</h1>
+        <p class="screen-subtitle">Vor-Ort-Dokumentation für das Aufmaß und Einschätzung der Montagedauer.</p>
+      </div>
+
+      ${renderMontageDaysBlock()}
+
+      ${renderPhotoBlock()}
+    </section>
+  `;
+}
+
+function renderMontageDaysBlock() {
+  const days = state.montageDays;
+  const acc = ACCESSORIES.find(a => a.sku === SKU_MONTAGE_DAY);
+  const dayPrice = acc ? acc.price : null;
+  const hasMontageInCatalog = !!acc;
+
+  let total = '';
+  if (days && dayPrice) {
+    total = `<div class="montage-total">≈ ${fmtEUR.format(days * dayPrice)} netto</div>`;
+  }
+
+  return `
+    <div class="montage-block">
+      <div class="montage-head">
+        <div>
+          <div class="montage-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Montagedauer
+          </div>
+          <div class="montage-sub">Einschätzung des Facharbeiters. Wird automatisch als Position „Tagessatz Montage" ins Angebot übernommen.</div>
+        </div>
+      </div>
+
+      <div class="montage-input-row">
+        <div class="field" style="flex: 1;">
+          <label class="field-label">Anzahl Tage</label>
+          <input type="text" inputmode="decimal" class="input montage-days-input" value="${days ?? ''}" placeholder="z. B. 2" oninput="setMontageDays(this.value)">
+        </div>
+        <div class="montage-day-rate-info">
+          ${hasMontageInCatalog
+            ? `<div class="montage-day-rate-label">Tagessatz (laut Katalog)</div><div class="montage-day-rate-value">${fmtEUR.format(dayPrice)}</div>`
+            : `<div style="color: #B91C1C; font-size: 13px; font-weight: 500;">⚠ Position „${SKU_MONTAGE_DAY}" fehlt im Sheet</div><div style="color: var(--text-soft); font-size: 11px; margin-top: 2px;">Im Tab „Zubehör" eintragen: SKU=${SKU_MONTAGE_DAY}, Bezeichnung=Tagessatz Montage, Einheit=Tag, Preis=800</div>`
+          }
+        </div>
+      </div>
+
+      ${total}
+    </div>
+  `;
+}
+
+function setMontageDays(val) {
+  const num = parseFloat(String(val).replace(',', '.').replace(/[^0-9.-]/g, ''));
+  state.montageDays = isFinite(num) && num > 0 ? num : null;
+
+  // Update the extras list: add, update or remove the montage line item
+  syncMontageExtra();
+
+  // Update the live total below in the same screen
+  const totalEl = document.querySelector('.montage-total');
+  const acc = ACCESSORIES.find(a => a.sku === SKU_MONTAGE_DAY);
+  if (state.montageDays && acc) {
+    const newTotal = `≈ ${fmtEUR.format(state.montageDays * acc.price)} netto`;
+    if (totalEl) totalEl.textContent = newTotal;
+    else {
+      const block = document.querySelector('.montage-block');
+      if (block) {
+        const div = document.createElement('div');
+        div.className = 'montage-total';
+        div.textContent = newTotal;
+        block.appendChild(div);
+      }
+    }
+  } else if (totalEl) {
+    totalEl.remove();
+  }
+}
+
+function syncMontageExtra() {
+  // Ensure state.extras has the montage line in sync with state.montageDays
+  const existingIdx = state.extras.findIndex(e => e.sku === SKU_MONTAGE_DAY);
+  if (state.montageDays && state.montageDays > 0) {
+    if (existingIdx >= 0) {
+      state.extras[existingIdx].qty = state.montageDays;
+    } else {
+      state.extras.push({ sku: SKU_MONTAGE_DAY, qty: state.montageDays });
+    }
+  } else {
+    if (existingIdx >= 0) state.extras.splice(existingIdx, 1);
+  }
 }
 
 function renderExtrasScreen() {
   return `
     <section class="screen">
       <div class="screen-header">
-        <div class="screen-label">Schritt 5 · Zubehör & Montage</div>
-        <h1 class="screen-title"><span class="accent">Zusatz</span>­positionen</h1>
-        <p class="screen-subtitle">Voreingestellte Standardwerte — vor Ort anpassen.</p>
+        <div class="screen-label">Schritt 6 · Zubehör, Anpassungen & Übersicht</div>
+        <h1 class="screen-title"><span class="accent">Positionen</span> &amp; Preise</h1>
+        <p class="screen-subtitle">Standard-Zubehör anpassen, Preise individualisieren, eigene Positionen ergänzen.</p>
       </div>
+
+      <h2 class="extras-section-title">Zubehör & Montage</h2>
+      <p class="extras-section-sub">Voreingestellte Standardwerte — vor Ort anpassen.</p>
       <div class="pos-list" id="pos-list">${state.extras.map(e => {
         const item = ACCESSORIES.find(a => a.sku === e.sku);
         if (!item) return '';
@@ -1658,8 +2633,40 @@ function renderExtrasScreen() {
         </div>`;
       }).join('')}</div>
       <div class="pos-catalog"><div class="pos-catalog-title">Aus Katalog hinzufügen</div><div class="pos-catalog-grid" id="catalog-grid">${renderCatalogItems()}</div></div>
+
+      ${renderPriceAdjustBlock()}
+
       ${renderLiveSummary()}
     </section>
+  `;
+}
+
+function renderPriceAdjustBlock() {
+  const positions = buildPositions();
+  return `
+    <div class="price-adjust-block">
+      <div class="price-adjust-head">
+        <div>
+          <div class="price-adjust-title">Preisanpassung</div>
+          <div class="price-adjust-sub">Nur für dieses Angebot. Der Katalog bleibt unverändert.</div>
+        </div>
+      </div>
+
+      <div class="position-list">
+        ${positions.filter(p => p.type !== 'adjustment').map(pos => renderPositionRow(pos)).join('')}
+      </div>
+
+      ${state.adjustments.length > 0 ? `
+        <div class="adjustment-list">
+          <div class="adjustment-list-label">Eigene Positionen</div>
+          ${state.adjustments.map(a => renderAdjustmentRow(a)).join('')}
+        </div>
+      ` : ''}
+
+      <button type="button" class="btn-add" onclick="addAdjustment()" style="margin-top: 12px;">
+        + Eigene Position hinzufügen (z. B. Zuschlag, Rabatt)
+      </button>
+    </div>
   `;
 }
 
@@ -1669,9 +2676,10 @@ function renderCatalogItems() {
 
 function renderLiveSummary() {
   const t = calcTotals();
-  return `<div class="summary" id="live-summary">
+  return `<div class="summary" id="live-summary" style="margin-top: 24px;">
     <div class="summary-row"><span>Geräte</span><span data-role="sum-devices">${fmtEUR.format(t.devices)}</span></div>
     <div class="summary-row"><span>Zusatzpositionen</span><span data-role="sum-extras">${fmtEUR.format(t.extras)}</span></div>
+    ${t.adjustments !== 0 ? `<div class="summary-row"><span>Preisanpassungen</span><span data-role="sum-adjustments">${fmtEUR.format(t.adjustments)}</span></div>` : ''}
     <div class="summary-row"><span>Netto</span><span data-role="sum-net">${fmtEUR.format(t.net)}</span></div>
     <div class="summary-row"><span>+ 19 % MwSt</span><span data-role="sum-vat">${fmtEUR.format(t.vat)}</span></div>
     <div class="summary-row total"><span>Gesamt</span><span data-role="sum-gross">${fmtEUR.format(t.gross)}</span></div>
@@ -1683,6 +2691,7 @@ function updateLiveSummary() {
   const summary = document.getElementById('live-summary'); if (!summary) return;
   const set = (role, val) => { const el = summary.querySelector(`[data-role="${role}"]`); if (el) el.textContent = fmtEUR.format(val); };
   set('sum-devices', t.devices); set('sum-extras', t.extras); set('sum-net', t.net); set('sum-vat', t.vat); set('sum-gross', t.gross);
+  set('sum-adjustments', t.adjustments);
 }
 
 function setExtraQty(sku, qty) { const e = state.extras.find(x => x.sku === sku); if (!e) return; e.qty = qty; const a = ACCESSORIES.find(x => x.sku === sku); if (!a) return; const row = document.querySelector(`[data-extra-sku="${sku}"]`); if (row) { const priceEl = row.querySelector('[data-role="extra-price"]'); if (priceEl) priceEl.textContent = fmtEUR.format(qty * a.price); } updateLiveSummary(); }
@@ -1750,6 +2759,28 @@ function buildPositions() {
         });
       }
     }
+  } else if (state.outdoorMode === 'circles') {
+    for (const circle of state.outdoorCircles) {
+      if (!circle.sku || circle.roomIds.length === 0) continue;
+      const o = PRODUCTS_OUTDOOR.find(x => x.sku === circle.sku);
+      if (!o) continue;
+      const roomNames = state.rooms
+        .filter(r => circle.roomIds.includes(r.id))
+        .map(r => r.name || 'Raum')
+        .join(', ');
+      const key = `outdoor:circle:${circle.id}:${o.sku}`;
+      const unitPrice = key in state.priceOverrides ? state.priceOverrides[key] : o.price;
+      const isSingle = circle.roomIds.length === 1;
+      positions.push({
+        key, type: 'outdoor',
+        label: `${o.brand} ${o.name} · ${o.kw} kW`,
+        description: isSingle ? `Außengerät Single-Split für ${roomNames}` : `Außengerät Multi-Split für ${roomNames}`,
+        qty: 1, unit: 'Stk',
+        defaultUnitPrice: o.price,
+        unitPrice,
+        total: unitPrice,
+      });
+    }
   }
 
   // Extras
@@ -1801,6 +2832,255 @@ function calcTotals() {
   return { devices, extras, adjustments, net, vat, gross };
 }
 
+/* ========================================================== MARGIN / KALKULATION ========================================================== */
+
+function getEkForPosition(pos) {
+  // Returns the net EK price PER UNIT for a position, or null if not known.
+  if (pos.type === 'adjustment') return null;
+  if (pos.type === 'indoor') {
+    // Key format: indoor:roomId:sku  → last part is SKU
+    const parts = pos.key.split(':');
+    const sku = parts[parts.length - 1];
+    const p = PRODUCTS_INDOOR.find(x => x.sku === sku);
+    return p && p.ekNet > 0 ? p.ekNet : null;
+  }
+  if (pos.type === 'outdoor') {
+    // Key format: outdoor:shared:sku  OR  outdoor:roomId:sku  OR  outdoor:circle:circleId:sku
+    const parts = pos.key.split(':');
+    const sku = parts[parts.length - 1];
+    const p = PRODUCTS_OUTDOOR.find(x => x.sku === sku);
+    return p && p.ekNet > 0 ? p.ekNet : null;
+  }
+  if (pos.type === 'extra') {
+    const sku = pos.key.split(':')[1];
+    const a = ACCESSORIES.find(x => x.sku === sku);
+    return a && a.ekNet > 0 ? a.ekNet : null;
+  }
+  return null;
+}
+
+function calcMargin() {
+  // Per-position EK + margin. Adjustments and items without EK are treated as 100% margin (full revenue, no cost).
+  const positions = buildPositions();
+  const rows = [];
+  const excludedRows = [];
+  let totalVk = 0, totalEk = 0, unknownEkCount = 0;
+
+  for (const pos of positions) {
+    const ekUnit = getEkForPosition(pos);
+    const vk = pos.total;
+    const ek = ekUnit !== null ? ekUnit * pos.qty : 0;
+    const margin = vk - ek;
+    const marginPct = vk > 0 ? (margin / vk) * 100 : 0;
+    const row = {
+      pos,
+      ekUnit,
+      ekTotal: ek,
+      vk,
+      margin,
+      marginPct,
+      hasEk: ekUnit !== null,
+    };
+
+    if (state.marginExcluded[pos.key]) {
+      excludedRows.push(row);
+      continue;  // skip in totals
+    }
+
+    totalVk += vk;
+    totalEk += ek;
+    if (ekUnit === null && pos.type !== 'adjustment') unknownEkCount++;
+    rows.push(row);
+  }
+
+  const totalMargin = totalVk - totalEk;
+  const totalMarginPct = totalVk > 0 ? (totalMargin / totalVk) * 100 : 0;
+
+  return {
+    rows,
+    excludedRows,
+    totalVk,
+    totalEk,
+    totalMargin,
+    totalMarginPct,
+    unknownEkCount,
+  };
+}
+
+function excludeFromMargin(positionKey) {
+  state.marginExcluded[positionKey] = true;
+  renderMarginView();
+}
+
+function restoreToMargin(positionKey) {
+  delete state.marginExcluded[positionKey];
+  renderMarginView();
+}
+
+function clearAllMarginExclusions() {
+  state.marginExcluded = {};
+  renderMarginView();
+}
+
+/* ========================================================== MARGIN PDF EXPORT ========================================================== */
+
+function renderMarginDoc() {
+  // A4 printable layout — internal document, not for customer
+  const m = calcMargin();
+  const today = fmtDate(new Date().toISOString());
+  const fullCustomerName = [state.customer.salutation, state.customer.firstName, state.customer.lastName].filter(Boolean).join(' ') || '—';
+  const fullAddress = [state.customer.street, [state.customer.zip, state.customer.city].filter(Boolean).join(' ')].filter(Boolean).join(', ') || '—';
+  const quoteNo = state.quoteNumber || '—';
+
+  const rowsHtml = m.rows.map((r, i) => {
+    const isAdj = r.pos.type === 'adjustment';
+    const ekUnitStr = r.hasEk ? fmtEUR.format(r.ekUnit) : (isAdj ? '—' : '⚠ fehlt');
+    const ekTotalStr = r.hasEk ? fmtEUR.format(r.ekTotal) : (isAdj ? '—' : '—');
+    const marginStr = r.hasEk || isAdj ? fmtEUR.format(r.margin) : '—';
+    const marginPctStr = r.hasEk && r.vk > 0 ? fmtNum(r.marginPct, 1) + ' %' : '—';
+    const marginColor = !r.hasEk && !isAdj ? '#9B6B00' :
+                        r.marginPct < 20 ? '#B91C1C' :
+                        r.marginPct < 35 ? '#9B6B00' : '#15803D';
+    return `
+      <tr>
+        <td class="mpdf-num">${String(i + 1).padStart(2, '0')}</td>
+        <td class="mpdf-label">${escapeHtml(r.pos.label)}</td>
+        <td class="mpdf-qty">${fmtNum(r.pos.qty, r.pos.qty % 1 === 0 ? 0 : 1)} ${escapeHtml(r.pos.unit)}</td>
+        <td class="mpdf-num-cell">${ekUnitStr}</td>
+        <td class="mpdf-num-cell">${ekTotalStr}</td>
+        <td class="mpdf-num-cell">${fmtEUR.format(r.vk)}</td>
+        <td class="mpdf-num-cell" style="color: ${marginColor};">${marginStr}</td>
+        <td class="mpdf-num-cell" style="color: ${marginColor};">${marginPctStr}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const overallMarginColor = m.totalMarginPct < 20 ? '#B91C1C' : m.totalMarginPct < 35 ? '#9B6B00' : '#15803D';
+
+  return `
+    <div class="mpdf-doc">
+      <div class="mpdf-page">
+        <div class="mpdf-head">
+          <div>
+            <div class="mpdf-brand">Raumgrad<span style="color:#1F4E47;">°</span> <span style="font-weight:400; color:#6B6B6B; font-size:11pt; margin-left:8px;">Internkalkulation</span></div>
+            <div class="mpdf-subtitle">VERTRAULICH — nicht an Kunden weitergeben</div>
+          </div>
+          <div class="mpdf-meta">
+            <div>Angebot ${escapeHtml(quoteNo)}</div>
+            <div>Stand: ${today}</div>
+            ${state.author.name ? `<div>Bearbeiter: ${escapeHtml(state.author.name)}</div>` : ''}
+          </div>
+        </div>
+
+        <div class="mpdf-customer">
+          <div><strong>Kunde:</strong> ${escapeHtml(fullCustomerName)}</div>
+          <div style="color:#6B6B6B; font-size:9pt;">${escapeHtml(fullAddress)}</div>
+        </div>
+
+        <table class="mpdf-table">
+          <thead>
+            <tr>
+              <th>Pos</th>
+              <th style="text-align:left;">Bezeichnung</th>
+              <th>Menge</th>
+              <th>EK / Einheit</th>
+              <th>EK gesamt</th>
+              <th>VK netto</th>
+              <th>Marge €</th>
+              <th>Marge %</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+
+        ${m.excludedRows.length > 0 ? `
+          <div class="mpdf-excluded-note">
+            Hinweis: ${m.excludedRows.length} Position${m.excludedRows.length !== 1 ? 'en' : ''} wurde${m.excludedRows.length === 1 ? '' : 'n'} aus dieser Kalkulation ausgeblendet
+            (${m.excludedRows.map(r => escapeHtml(r.pos.label)).join('; ')}).
+          </div>
+        ` : ''}
+
+        ${m.unknownEkCount > 0 ? `
+          <div class="mpdf-warning">
+            ⚠ Für ${m.unknownEkCount} Position${m.unknownEkCount !== 1 ? 'en' : ''} ist kein EK-Preis im Sheet hinterlegt — diese${m.unknownEkCount !== 1 ? '' : ' Position'} verfälsch${m.unknownEkCount !== 1 ? 'en' : 't'} die Gesamt-Marge nach oben.
+          </div>
+        ` : ''}
+
+        <div class="mpdf-totals">
+          <div class="mpdf-totals-row"><span>Gesamt-VK (netto)</span><span>${fmtEUR.format(m.totalVk)}</span></div>
+          <div class="mpdf-totals-row"><span>Gesamt-EK (netto)</span><span>${fmtEUR.format(m.totalEk)}</span></div>
+          <div class="mpdf-totals-grand" style="color: ${overallMarginColor};">
+            <span>Rohertrag</span>
+            <span>${fmtEUR.format(m.totalMargin)} <span style="font-size:11pt; opacity:0.75;">(${fmtNum(m.totalMarginPct, 1)} %)</span></span>
+          </div>
+        </div>
+
+        <div class="mpdf-footnote">
+          <strong>Wichtig:</strong> Der Rohertrag enthält keine Arbeitszeit, Fahrzeugkosten, Versicherungen oder Verwaltungskosten.
+          Für die tatsächliche Profitmarge müssen davon die internen Kosten abgezogen werden.
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function exportMarginPdf() {
+  // Build temporary off-screen container with the print-formatted margin doc
+  const wrap = document.createElement('div');
+  wrap.id = 'margin-pdf-temp';
+  wrap.style.cssText = 'position:absolute; left:-9999px; top:0; width:210mm; background:white; z-index:-1;';
+  wrap.innerHTML = renderMarginDoc();
+  document.body.appendChild(wrap);
+
+  try {
+    // Disable button while generating
+    const btn = document.querySelector('[onclick="exportMarginPdf()"]');
+    const originalText = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = 'PDF wird erstellt …'; }
+
+    if (document.fonts && document.fonts.ready) {
+      try { await document.fonts.ready; } catch(e) {}
+    }
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+
+    const page = wrap.querySelector('.mpdf-page');
+    const canvas = await html2canvas(page, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      allowTaint: true,
+      imageTimeout: 8000,
+      windowWidth: page.offsetWidth,
+      windowHeight: page.offsetHeight,
+    });
+
+    // Fit to A4 portrait. If page is taller than A4, scale down to fit.
+    const a4w = 210, a4h = 297;
+    const imgRatio = canvas.height / canvas.width;
+    let w = a4w, h = a4w * imgRatio;
+    if (h > a4h) { h = a4h; w = a4h / imgRatio; }
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.94);
+    pdf.addImage(imgData, 'JPEG', (a4w - w) / 2, 0, w, h, undefined, 'FAST');
+
+    const quoteNo = state.quoteNumber || 'Entwurf';
+    pdf.save(`Kalkulation_${quoteNo}.pdf`);
+
+    if (btn) { btn.disabled = false; btn.textContent = originalText; }
+  } catch (e) {
+    console.error('Margin-PDF Fehler:', e);
+    alert('Margen-PDF konnte nicht erstellt werden: ' + (e.message || 'Unbekannter Fehler'));
+    const btn = document.querySelector('[onclick="exportMarginPdf()"]');
+    if (btn) { btn.disabled = false; btn.textContent = '📄 Als PDF speichern'; }
+  } finally {
+    document.body.removeChild(wrap);
+  }
+}
+
 /* ========================================================== PRICE OVERRIDES & ADJUSTMENTS ========================================================== */
 
 function setPriceOverride(key, newPriceStr) {
@@ -1848,14 +3128,14 @@ function updateAdjustmentUI() {
   // Surgical update — re-render positions list AND totals without full screen rebuild
   const t = calcTotals();
   const positions = buildPositions();
-  // Update totals
-  const setText = (sel, val) => { const el = document.querySelector(sel); if (el) el.textContent = fmtEUR.format(val); };
-  setText('[data-sum-devices]', t.devices);
-  setText('[data-sum-extras]', t.extras);
-  if (t.adjustments !== 0) setText('[data-sum-adjustments]', t.adjustments);
-  setText('[data-sum-net]', t.net);
-  setText('[data-sum-vat]', t.vat);
-  setText('[data-sum-gross]', t.gross);
+  // Update totals — works for both old data-sum-* and live-summary data-role="sum-*" selectors
+  const setText = (sel, val) => { document.querySelectorAll(sel).forEach(el => el.textContent = fmtEUR.format(val)); };
+  setText('[data-sum-devices], [data-role="sum-devices"]', t.devices);
+  setText('[data-sum-extras], [data-role="sum-extras"]', t.extras);
+  setText('[data-sum-adjustments], [data-role="sum-adjustments"]', t.adjustments);
+  setText('[data-sum-net], [data-role="sum-net"]', t.net);
+  setText('[data-sum-vat], [data-role="sum-vat"]', t.vat);
+  setText('[data-sum-gross], [data-role="sum-gross"]', t.gross);
   // Update per-position totals
   for (const pos of positions) {
     const el = document.querySelector(`[data-position-total="${pos.key}"]`);
@@ -1870,55 +3150,186 @@ function updateAdjustmentUI() {
 
 /* ========================================================== SUMMARY ========================================================== */
 
+function renderPhotoSummary() {
+  // Compact status line for the summary screen (full editing is in the Doku step)
+  const slots = [];
+  for (const room of state.rooms) slots.push({ key: room.id, label: room.name || 'Raum' });
+  slots.push({ key: 'outdoor', label: 'Außenbereich' });
+  const totalPhotos = slots.reduce((s, slot) => s + getPhotosFor(slot.key).length, 0);
+
+  return `
+    <div style="margin-top: 18px; padding: 14px 18px; background: var(--surface-warm); border: 1px solid var(--border); border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <div>
+        <div style="font-size: 13px; font-weight: 500; color: var(--text);">Fotodokumentation</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+          ${totalPhotos > 0
+            ? `<strong style="color: var(--accent);">${totalPhotos} Foto${totalPhotos !== 1 ? 's' : ''}</strong> aufgenommen für Aufmaß-PDF`
+            : 'Keine Fotos hinzugefügt'}
+        </div>
+      </div>
+      <button type="button" class="btn btn-ghost" style="font-size: 13px;" onclick="goToStep('doku')">Bearbeiten →</button>
+    </div>
+  `;
+}
+
+function goToStep(stepId) {
+  const idx = STEPS.findIndex(s => s.id === stepId);
+  if (idx >= 0) { state.stepIndex = idx; render(); }
+}
+
+function renderPhotoBlock() {
+  const slots = [];
+  // One slot per room
+  for (const room of state.rooms) {
+    slots.push({ key: room.id, label: room.name || 'Raum', meta: `${room.area} m²` });
+  }
+  // Plus one slot for outdoor area
+  slots.push({ key: 'outdoor', label: 'Außenbereich', meta: 'Position Außengerät, Leitungsführung etc.' });
+
+  const totalPhotos = slots.reduce((s, slot) => s + getPhotosFor(slot.key).length, 0);
+
+  return `
+    <div class="photo-block">
+      <div class="photo-block-head">
+        <div>
+          <div class="photo-block-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Fotos zur Montage
+          </div>
+          <div class="photo-block-sub">Für die Aufmaß-Dokumentation (nicht im Angebot). ${totalPhotos > 0 ? `<strong style="color: var(--accent);">${totalPhotos} Foto${totalPhotos !== 1 ? 's' : ''}</strong> aktuell hinzugefügt.` : ''}</div>
+        </div>
+      </div>
+
+      ${totalPhotos > 0 ? `
+        <div class="photo-warning">
+          ⚠ Fotos werden <strong>nur in dieser Sitzung</strong> gespeichert. Erstelle das Aufmaß-PDF, bevor du die App schließt oder das Tablet sperrst.
+        </div>
+      ` : ''}
+
+      ${slots.map(slot => renderPhotoSlot(slot)).join('')}
+    </div>
+  `;
+}
+
+function renderPhotoSlot(slot) {
+  const photos = getPhotosFor(slot.key);
+  return `
+    <div class="photo-slot">
+      <div class="photo-slot-label">
+        ${escapeHtml(slot.label)}
+        <span class="photo-slot-label-meta">${escapeHtml(slot.meta)}</span>
+        ${photos.length > 0 ? `<span class="photo-slot-label-meta">· ${photos.length} Foto${photos.length !== 1 ? 's' : ''}</span>` : ''}
+      </div>
+      <label class="photo-upload-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Foto aufnehmen / hochladen
+        <input type="file" accept="image/*" multiple onchange="handlePhotoInput('${slot.key}', this.files); this.value = ''">
+        <span class="photo-uploading" data-photo-uploading="${slot.key}">verarbeite…</span>
+      </label>
+
+      ${photos.length > 0 ? `
+        <div class="photo-gallery">
+          ${photos.map(photo => `
+            <div class="photo-card">
+              <div class="photo-thumb" onclick="openPhotoLightbox('${photo.dataUrl}')">
+                <img src="${photo.dataUrl}" alt="Foto">
+                <button type="button" class="photo-thumb-overlay" onclick="event.stopPropagation(); deletePhoto('${slot.key}', '${photo.id}')" aria-label="Foto entfernen">×</button>
+              </div>
+              <input type="text" class="photo-caption-input" placeholder="Bildunterschrift (optional)" value="${escapeHtml(photo.caption || '')}" oninput="setPhotoCaption('${slot.key}', '${photo.id}', this.value)">
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderAmdocPhotos(slotKey) {
+  const photos = getPhotosFor(slotKey);
+  if (!photos.length) return '';
+  return `
+    <div class="amdoc-photo-section">
+      <div class="amdoc-photo-label">Fotos zur Montage</div>
+      <div class="amdoc-photo-grid">
+        ${photos.map(p => `
+          <div class="amdoc-photo">
+            <img src="${p.dataUrl}" alt="">
+            ${p.caption ? `<div class="amdoc-photo-caption">${escapeHtml(p.caption)}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderAmdocOutdoorPhotos() {
+  const photos = getPhotosFor('outdoor');
+  if (!photos.length) return '';
+  return `
+    <div class="amdoc-room">
+      <div class="amdoc-room-title">Außenbereich</div>
+      ${renderAmdocPhotos('outdoor')}
+    </div>
+  `;
+}
+
 function renderSummaryScreen() {
   const t = calcTotals();
   const positions = buildPositions();
+  const fullCustomerName = [state.customer.salutation, state.customer.firstName, state.customer.lastName].filter(Boolean).join(' ') || '—';
+  const fullAddress = [state.customer.street, [state.customer.zip, state.customer.city].filter(Boolean).join(' ')].filter(Boolean).join(', ') || '—';
+
   return `
     <section class="screen">
-      <div class="screen-header"><div class="screen-label">Schritt 6 · Abschluss</div>
-        <h1 class="screen-title">Bereit zum <span class="accent">Drucken</span>.</h1>
-        <p class="screen-subtitle">Letzte Prüfung vor Erstellung des Angebots. Hier kannst du Preise noch für dieses Angebot anpassen.</p></div>
+      <div class="screen-header"><div class="screen-label">Schritt 7 · Bereit zum Drucken</div>
+        <h1 class="screen-title">Endgültige <span class="accent">Übersicht</span></h1>
+        <p class="screen-subtitle">So wird das Angebot gedruckt. Änderungen vornehmen? Zurück zu Schritt 5.</p></div>
 
-      <div class="summary">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 14px;">
-          <div><div class="field-label" style="margin-bottom: 6px">Kunde</div>
-            <div>${[state.customer.salutation, state.customer.firstName, state.customer.lastName].filter(Boolean).join(' ') || '—'}</div>
-            <div style="color: var(--text-muted); font-size: 14px">${[state.customer.street, [state.customer.zip, state.customer.city].filter(Boolean).join(' ')].filter(Boolean).join(', ')}</div></div>
-          <div><div class="field-label" style="margin-bottom: 6px">Projekt</div>
-            <div>${labelType()}</div>
-            <div style="color: var(--text-muted); font-size: 14px">${state.rooms.length} Räume · ${state.rooms.reduce((s,r) => s + (r.finalKw||0), 0).toFixed(1)} kW gesamt</div></div>
-        </div>
-        <div class="summary-row"><span>Geräte</span><span data-sum-devices>${fmtEUR.format(t.devices)}</span></div>
-        <div class="summary-row"><span>Zusatzpositionen</span><span data-sum-extras>${fmtEUR.format(t.extras)}</span></div>
-        ${t.adjustments !== 0 ? `<div class="summary-row"><span>Preisanpassungen</span><span data-sum-adjustments>${fmtEUR.format(t.adjustments)}</span></div>` : ''}
-        <div class="summary-row"><span>Netto</span><span data-sum-net>${fmtEUR.format(t.net)}</span></div>
-        <div class="summary-row"><span>+ 19 % MwSt</span><span data-sum-vat>${fmtEUR.format(t.vat)}</span></div>
-        <div class="summary-row total"><span>Gesamt</span><span data-sum-gross>${fmtEUR.format(t.gross)}</span></div>
-      </div>
-
-      <div class="price-adjust-block">
-        <div class="price-adjust-head">
+      <div class="overview-card">
+        <div class="overview-grid">
           <div>
-            <div class="price-adjust-title">Preisanpassung</div>
-            <div class="price-adjust-sub">Nur für dieses Angebot. Der Katalog bleibt unverändert.</div>
+            <div class="overview-label">Kunde</div>
+            <div class="overview-value">${fullCustomerName}</div>
+            <div class="overview-value-sub">${fullAddress}</div>
+            ${state.customer.phone || state.customer.email ? `<div class="overview-value-sub">${[state.customer.phone, state.customer.email].filter(Boolean).join(' · ')}</div>` : ''}
+          </div>
+          <div>
+            <div class="overview-label">Projekt</div>
+            <div class="overview-value">${labelType()}</div>
+            <div class="overview-value-sub">${state.rooms.length} ${state.rooms.length === 1 ? 'Raum' : 'Räume'} · ${state.rooms.reduce((s,r) => s + (r.finalKw||0), 0).toFixed(1)} kW gesamt</div>
+            ${state.author.name ? `<div class="overview-value-sub">Bearbeiter: ${state.author.name}</div>` : ''}
           </div>
         </div>
-
-        <div class="position-list">
-          ${positions.filter(p => p.type !== 'adjustment').map(pos => renderPositionRow(pos)).join('')}
-        </div>
-
-        ${state.adjustments.length > 0 ? `
-          <div class="adjustment-list">
-            <div class="adjustment-list-label">Eigene Positionen</div>
-            ${state.adjustments.map(a => renderAdjustmentRow(a)).join('')}
-          </div>
-        ` : ''}
-
-        <button type="button" class="btn-add" onclick="addAdjustment()" style="margin-top: 12px;">
-          + Eigene Position hinzufügen (z. B. Zuschlag, Rabatt)
-        </button>
       </div>
+
+      <div class="overview-positions">
+        <div class="overview-section-label">Positionen</div>
+        <div class="overview-pos-table">
+          ${positions.map((pos, i) => `
+            <div class="overview-pos-row">
+              <div class="overview-pos-num">${String(i + 1).padStart(2, '0')}</div>
+              <div class="overview-pos-info">
+                <div class="overview-pos-label">${escapeHtml(pos.label)}</div>
+                ${pos.description ? `<div class="overview-pos-desc">${escapeHtml(pos.description)}</div>` : ''}
+              </div>
+              <div class="overview-pos-qty">${fmtNum(pos.qty, pos.qty % 1 === 0 ? 0 : 1)} ${pos.unit}</div>
+              <div class="overview-pos-unit-price">${fmtEUR.format(pos.unitPrice)}</div>
+              <div class="overview-pos-total">${fmtEUR.format(pos.total)}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="overview-totals">
+        <div class="overview-totals-row"><span>Geräte</span><span>${fmtEUR.format(t.devices)}</span></div>
+        <div class="overview-totals-row"><span>Zusatzpositionen</span><span>${fmtEUR.format(t.extras)}</span></div>
+        ${t.adjustments !== 0 ? `<div class="overview-totals-row"><span>Preisanpassungen</span><span>${fmtEUR.format(t.adjustments)}</span></div>` : ''}
+        <div class="overview-totals-row"><span>Netto</span><span>${fmtEUR.format(t.net)}</span></div>
+        <div class="overview-totals-row"><span>+ 19 % MwSt</span><span>${fmtEUR.format(t.vat)}</span></div>
+        <div class="overview-totals-row overview-totals-grand"><span>Endbetrag brutto</span><span>${fmtEUR.format(t.gross)}</span></div>
+      </div>
+
+      ${renderPhotoSummary()}
 
       <div class="quote-actions">
         <button type="button" class="btn btn-secondary btn-block" onclick="openAufmass()">Aufmaß-Dokumentation</button>
@@ -2458,9 +3869,11 @@ function renderAufmassDoc() {
                 ${o ? `<div class="amdoc-notes">Außengerät: ${o.brand} ${o.name} (${o.kw} kW)</div>` : ''}
                 ${room.correctionReason ? `<div class="amdoc-notes">Korrektur-Begründung: ${room.correctionReason}</div>` : ''}
                 ${room.notes ? `<div class="amdoc-notes">Notizen: ${room.notes}</div>` : ''}
+                ${renderAmdocPhotos(room.id)}
               </div>
             `;
           }).join('')}
+          ${renderAmdocOutdoorPhotos()}
         </div>
         <div class="doc-foot-wrap">
           <div class="doc-page-meta">
@@ -2566,6 +3979,28 @@ function parseFeatures(val) {
   return String(val).split(/[,;]/).map(s => s.trim()).filter(Boolean);
 }
 
+function normalizeImageUrl(url) {
+  if (!url) return '';
+  const s = String(url).trim();
+  if (!s) return '';
+  // Convert Google Drive "share" URLs into direct image URLs
+  // Pattern 1: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+  const m1 = s.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if (m1) return `https://drive.google.com/thumbnail?id=${m1[1]}&sz=w400`;
+  // Pattern 2: https://drive.google.com/open?id=FILE_ID
+  const m2 = s.match(/drive\.google\.com\/open\?id=([^&]+)/);
+  if (m2) return `https://drive.google.com/thumbnail?id=${m2[1]}&sz=w400`;
+  // Otherwise use as-is (Imgur, manufacturer sites, etc.)
+  return s;
+}
+
+// Helper: convert gross EK (with VAT) to net EK for margin calculation
+function ekBruttoToNetto(val) {
+  const brutto = parsePrice(val);
+  if (!brutto) return 0;
+  return brutto / 1.19;
+}
+
 function mapIndoorRow(row) {
   return {
     sku: ss(row.SKU),
@@ -2576,6 +4011,8 @@ function mapIndoorRow(row) {
     sound: ss(row.Schallpegel),
     price: parsePrice(row.Preis),
     features: parseFeatures(row.Features),
+    imageUrl: normalizeImageUrl(row['Bild-URL'] || row.BildURL || row.Bild || ''),
+    ekNet: ekBruttoToNetto(row['EK Preis mit Mwst'] || row['EK Preis mit MwSt'] || row['EK mit Mwst'] || row.EK || ''),
   };
 }
 function mapOutdoorRow(row) {
@@ -2588,6 +4025,8 @@ function mapOutdoorRow(row) {
     slots: parseSlots(row.Slots),
     price: parsePrice(row.Preis),
     features: parseFeatures(row.Features),
+    imageUrl: normalizeImageUrl(row['Bild-URL'] || row.BildURL || row.Bild || ''),
+    ekNet: ekBruttoToNetto(row['EK Preis mit Mwst'] || row['EK Preis mit MwSt'] || row['EK mit Mwst'] || row.EK || ''),
   };
 }
 function mapAccessoryRow(row) {
@@ -2597,6 +4036,7 @@ function mapAccessoryRow(row) {
     unit: ss(row.Einheit) || 'Stk',
     price: parsePrice(row.Preis),
     desc: ss(row.Beschreibung),
+    ekNet: ekBruttoToNetto(row['EK Preis mit Mwst'] || row['EK Preis mit MwSt'] || row['EK mit Mwst'] || row.EK || ''),
   };
 }
 
@@ -2901,7 +4341,7 @@ function resetAll() {
   if (!confirm('Aufmaß komplett zurücksetzen?')) return;
   state.stepIndex = 0;
   state.customer = { salutation: 'Herr', firstName: '', lastName: '', street: '', zip: '', city: '', phone: '', email: '', appointment: new Date().toISOString().slice(0,10) };
-  state.rooms = []; state.selectedDevices = {}; state.outdoorMode = 'individual'; state.selectedOutdoor = null; state.selectedOutdoorPerRoom = {}; state.extras = []; state.quoteNumber = null; state.expandAllDevices = {}; state.expandAllOutdoor = false; state.expandAllOutdoorPerRoom = {}; state.indoorFilters = {}; state.outdoorFilters = {}; state.priceOverrides = {}; state.adjustments = [];
+  state.rooms = []; state.selectedDevices = {}; state.outdoorMode = 'individual'; state.selectedOutdoor = null; state.selectedOutdoorPerRoom = {}; state.extras = []; state.quoteNumber = null; state.expandAllDevices = {}; state.expandAllOutdoor = false; state.expandAllOutdoorPerRoom = {}; state.indoorFilters = {}; state.outdoorFilters = {}; state.priceOverrides = {}; state.adjustments = []; state.photos = {}; state.montageDays = null; state.extrasPrefilled = false; state.marginExcluded = {}; state.collapsedIndoorRooms = {}; state.collapsedOutdoorRooms = {}; state.outdoorCircles = [];
   const r = makeRoom(); r.name = 'Wohnzimmer'; const calc = calculateRoom(r); r.finalKw = calc.recommendedKw; state.rooms.push(r);
   render();
 }
