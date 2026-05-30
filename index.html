@@ -320,6 +320,11 @@
 
 .amdoc-photo-section { margin-top: 12px; }
 
+.amdoc { background: white; padding: 14mm 12mm; }
+.amdoc-section { margin-bottom: 8mm; }
+.amdoc-section-header { padding-bottom: 4mm; border-bottom: 1px solid #E0E0DD; }
+.amdoc-section-footer { margin-top: 12mm; padding-top: 6mm; border-top: 2px solid #1F4E47; }
+
 .amdoc-project-notes {
   margin: 6mm 0;
   padding: 4mm 5mm;
@@ -3568,128 +3573,346 @@ async function generatePDF(docEl) {
   btns.forEach((b, i) => { originalTexts[i] = b.textContent; b.disabled = true; b.textContent = 'PDF wird erstellt …'; });
 
   try {
-    // Wait for fonts to be ready so they render in the canvas
     if (document.fonts && document.fonts.ready) {
       try { await document.fonts.ready; } catch(e) {}
     }
-
-    // Wait for all images in the doc to actually finish loading/decoding
-    // Critical for QR code: data URL images sometimes need a tick to be ready
+    // Wait for all images to load
     const imgs = docEl.querySelectorAll('img');
     await Promise.all(Array.from(imgs).map(img => {
       if (img.complete && img.naturalWidth > 0) return Promise.resolve();
       return new Promise(resolve => {
         img.addEventListener('load', resolve, { once: true });
         img.addEventListener('error', resolve, { once: true });
-        // Hard timeout — don't block PDF generation indefinitely
-        setTimeout(resolve, 1500);
+        setTimeout(resolve, 2000);
       });
     }));
-    // Extra animation frame to ensure layout is settled
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+    const A4_W = 210, A4_H = 297;
 
-    const pages = docEl.querySelectorAll('.doc-page');
-    if (pages.length === 0) throw new Error('Keine Seiten im Dokument gefunden.');
+    // Detect document type
+    const isAufmass = docEl.classList.contains('amdoc') || docEl.querySelector('.amdoc-section');
 
-    for (let i = 0; i < pages.length; i++) {
-      const page = pages[i];
-
-      // Capture as canvas at retina resolution
-      const canvas = await html2canvas(page, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        allowTaint: true,
-        imageTimeout: 8000,
-        windowWidth: page.offsetWidth,
-        windowHeight: page.offsetHeight,
-      });
-
-      // Calculate how the canvas would fit on A4 (210mm wide).
-      // Aspect ratio: imgHeight / imgWidth = canvas.height / canvas.width
-      const A4_W = 210, A4_H = 297;
-      const canvasAspect = canvas.height / canvas.width;
-      const imgFullHeight = A4_W * canvasAspect;  // mm at 210mm width
-
-      if (imgFullHeight <= A4_H + 5) {
-        // Fits on one page — render normally
-        if (i > 0) pdf.addPage();
-        const imgData = canvas.toDataURL('image/jpeg', 0.94);
-        pdf.addImage(imgData, 'JPEG', 0, 0, A4_W, imgFullHeight, undefined, 'FAST');
-
-        // Inject QR for quote document
-        const qrImg = page.querySelector('#quote-qr img');
-        if (qrImg && qrImg.src) {
-          try {
-            const pageRect = page.getBoundingClientRect();
-            const qrRect = qrImg.getBoundingClientRect();
-            const mmPerPx = 210 / pageRect.width;
-            const x = (qrRect.left - pageRect.left) * mmPerPx;
-            const y = (qrRect.top - pageRect.top) * mmPerPx;
-            const w = qrRect.width * mmPerPx;
-            const h = qrRect.height * mmPerPx;
-            let qrPng = qrImg.src;
-            if (qrPng.startsWith('blob:')) {
-              const resp = await fetch(qrPng);
-              const blob = await resp.blob();
-              qrPng = await new Promise((resolve, reject) => {
-                const fr = new FileReader();
-                fr.onloadend = () => resolve(fr.result);
-                fr.onerror = () => reject(new Error('Blob read failed'));
-                fr.readAsDataURL(blob);
-              });
-            }
-            pdf.setFillColor(255, 255, 255);
-            pdf.rect(x, y, w, h, 'F');
-            pdf.addImage(qrPng, 'PNG', x, y, w, h, undefined, 'NONE');
-          } catch(qrErr) { console.warn('QR injection failed:', qrErr); }
-        }
-      } else {
-        // Content is taller than A4 — slice into multiple pages.
-        // We draw the SAME image on each PDF page, but offset its Y position
-        // so different parts of the image show through the A4 viewport.
-        const totalPages = Math.ceil(imgFullHeight / A4_H);
-        const imgData = canvas.toDataURL('image/jpeg', 0.94);
-
-        for (let p = 0; p < totalPages; p++) {
-          if (i > 0 || p > 0) pdf.addPage();
-          const yOffset = -p * A4_H;  // shift image up by one A4 height per page
-          pdf.addImage(imgData, 'JPEG', 0, yOffset, A4_W, imgFullHeight, undefined, 'FAST');
-        }
-      }
+    if (isAufmass) {
+      // === AUFMASS DOC: section-by-section rendering, stack onto A4 pages ===
+      await generateAufmassPdf(pdf, docEl, A4_W, A4_H);
+    } else {
+      // === ANGEBOT DOC: existing .doc-page per A4 logic ===
+      await generateAngebotPdf(pdf, docEl, A4_W, A4_H);
     }
 
-    // Open PDF in new tab via anchor click — works reliably on iPad/Safari
-    // unlike window.open() which gets blocked after async operations.
+    // === Output handling: show modal with explicit user button ===
     const blob = pdf.output('blob');
     const url = URL.createObjectURL(blob);
-    // Detect document type from modal title
-    const modalTitle = document.getElementById('modal-title');
-    const isAufmass = modalTitle && /Aufmaß/i.test(modalTitle.textContent);
     const filename = isAufmass
       ? `Aufmass_${state.quoteNumber || 'Entwurf'}.pdf`
       : `Angebot_${state.quoteNumber || 'Entwurf'}.pdf`;
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    // Free the blob after a short delay (Safari needs time to actually load it)
-    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    // Show "PDF fertig" modal with button — user clicks → opens in new tab.
+    // This guarantees no popup-blocker issues because the actual window.open
+    // happens INSIDE a user-initiated click handler.
+    showPdfReadyModal(url, filename);
   } catch (e) {
     console.error('PDF generation failed:', e);
     alert('PDF konnte nicht erstellt werden:\n' + (e.message || e) + '\n\nVersuche es nochmal oder nutze den Browser-Druck.');
   } finally {
     btns.forEach((b, i) => { b.disabled = false; b.textContent = originalTexts[i] || 'Drucken / PDF'; });
   }
+}
+
+async function generateAngebotPdf(pdf, docEl, A4_W, A4_H) {
+  const pages = docEl.querySelectorAll('.doc-page');
+  if (pages.length === 0) throw new Error('Keine Seiten im Angebot gefunden.');
+
+  for (let i = 0; i < pages.length; i++) {
+    const page = pages[i];
+    const canvas = await html2canvas(page, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      allowTaint: true,
+      imageTimeout: 8000,
+      windowWidth: page.offsetWidth,
+      windowHeight: page.offsetHeight,
+    });
+
+    const canvasAspect = canvas.height / canvas.width;
+    const imgFullHeight = A4_W * canvasAspect;
+
+    if (imgFullHeight <= A4_H + 5) {
+      if (i > 0) pdf.addPage();
+      const imgData = canvas.toDataURL('image/jpeg', 0.94);
+      pdf.addImage(imgData, 'JPEG', 0, 0, A4_W, imgFullHeight, undefined, 'FAST');
+
+      // Inject QR for quote doc
+      const qrImg = page.querySelector('#quote-qr img');
+      if (qrImg && qrImg.src) {
+        try {
+          const pageRect = page.getBoundingClientRect();
+          const qrRect = qrImg.getBoundingClientRect();
+          const mmPerPx = 210 / pageRect.width;
+          const x = (qrRect.left - pageRect.left) * mmPerPx;
+          const y = (qrRect.top - pageRect.top) * mmPerPx;
+          const w = qrRect.width * mmPerPx;
+          const h = qrRect.height * mmPerPx;
+          let qrPng = qrImg.src;
+          if (qrPng.startsWith('blob:')) {
+            const resp = await fetch(qrPng);
+            const blob = await resp.blob();
+            qrPng = await new Promise((resolve, reject) => {
+              const fr = new FileReader();
+              fr.onloadend = () => resolve(fr.result);
+              fr.onerror = () => reject(new Error('Blob read failed'));
+              fr.readAsDataURL(blob);
+            });
+          }
+          pdf.setFillColor(255, 255, 255);
+          pdf.rect(x, y, w, h, 'F');
+          pdf.addImage(qrPng, 'PNG', x, y, w, h, undefined, 'NONE');
+        } catch(qrErr) { console.warn('QR injection failed:', qrErr); }
+      }
+    } else {
+      const totalPages = Math.ceil(imgFullHeight / A4_H);
+      const imgData = canvas.toDataURL('image/jpeg', 0.94);
+      for (let p = 0; p < totalPages; p++) {
+        if (i > 0 || p > 0) pdf.addPage();
+        const yOffset = -p * A4_H;
+        pdf.addImage(imgData, 'JPEG', 0, yOffset, A4_W, imgFullHeight, undefined, 'FAST');
+      }
+    }
+  }
+}
+
+async function generateAufmassPdf(pdf, docEl, A4_W, A4_H) {
+  // Strategy: clone the Aufmaß document into an off-screen sandbox to isolate it
+  // from any modal/sticky/overflow shenanigans, then render section by section.
+
+  const MARGIN_TOP = 14;
+  const MARGIN_X = 12;
+  const CONTENT_W = A4_W - 2 * MARGIN_X;
+  const PAGE_USABLE_H = A4_H - MARGIN_TOP - 10;
+
+  // === 1. Build off-screen sandbox ===
+  // Width = exactly the content width at A4 size, in pixels.
+  // We use ~3.78 px/mm (standard CSS reference).
+  const sandboxWidthPx = Math.round(A4_W * 3.78);  // ~794 px for 210mm A4 width
+
+  const sandbox = document.createElement('div');
+  sandbox.id = 'aufmass-pdf-sandbox';
+  sandbox.style.cssText = `
+    position: fixed;
+    left: -10000px;
+    top: 0;
+    width: ${sandboxWidthPx}px;
+    background: white;
+    z-index: -1;
+    pointer-events: none;
+  `;
+  // Clone the entire Aufmaß doc into the sandbox
+  sandbox.innerHTML = docEl.outerHTML;
+  document.body.appendChild(sandbox);
+
+  try {
+    // === 2. Wait for all images in the clone to fully load ===
+    const clonedImgs = sandbox.querySelectorAll('img');
+    if (clonedImgs.length > 0) {
+      console.log(`[Aufmaß-PDF] Warte auf ${clonedImgs.length} Bilder...`);
+      await Promise.all(Array.from(clonedImgs).map((img, idx) => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise(resolve => {
+          const done = () => resolve();
+          img.addEventListener('load', done, { once: true });
+          img.addEventListener('error', done, { once: true });
+          setTimeout(() => {
+            console.warn(`[Aufmaß-PDF] Bild ${idx} Timeout nach 3s`);
+            resolve();
+          }, 3000);
+        });
+      }));
+    }
+
+    // Extra render tick
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    // === 3. Get sections from the SANDBOX (not original) ===
+    const sections = sandbox.querySelectorAll('.amdoc-section');
+    if (sections.length === 0) {
+      throw new Error('Keine .amdoc-section Elemente im Sandbox gefunden. Aufmaß-Doku ist leer oder falsch gerendert.');
+    }
+    console.log(`[Aufmaß-PDF] ${sections.length} Sektionen gefunden`);
+
+    let currentY = MARGIN_TOP;
+    let isFirstSection = true;
+
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i];
+
+      // Skip sections with zero or near-zero size
+      const rect = section.getBoundingClientRect();
+      if (rect.width < 10 || rect.height < 10) {
+        console.warn(`[Aufmaß-PDF] Sektion ${i} hat keine Größe (${rect.width}x${rect.height}), übersprungen`);
+        continue;
+      }
+
+      // Render section to canvas
+      let canvas;
+      try {
+        canvas = await html2canvas(section, {
+          scale: 1.5,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          allowTaint: true,
+          imageTimeout: 5000,
+        });
+      } catch (captureErr) {
+        console.error(`[Aufmaß-PDF] Sektion ${i} Render fehlgeschlagen:`, captureErr);
+        continue;
+      }
+
+      if (!canvas || canvas.width === 0 || canvas.height === 0) {
+        console.warn(`[Aufmaß-PDF] Sektion ${i}: Canvas leer, übersprungen`);
+        continue;
+      }
+
+      const sectionAspect = canvas.height / canvas.width;
+      const sectionMmHeight = CONTENT_W * sectionAspect;
+
+      let imgData;
+      try {
+        imgData = canvas.toDataURL('image/jpeg', 0.85);
+      } catch (toDataErr) {
+        console.error(`[Aufmaß-PDF] Sektion ${i} toDataURL fehlgeschlagen:`, toDataErr);
+        continue;
+      }
+
+      const remainingOnPage = PAGE_USABLE_H - (currentY - MARGIN_TOP);
+
+      if (sectionMmHeight <= remainingOnPage + 1) {
+        // Fits on current page
+        if (isFirstSection) isFirstSection = false;
+        pdf.addImage(imgData, 'JPEG', MARGIN_X, currentY, CONTENT_W, sectionMmHeight, undefined, 'FAST');
+        currentY += sectionMmHeight + 3;
+      } else if (sectionMmHeight <= PAGE_USABLE_H) {
+        // Start new page
+        if (!isFirstSection) pdf.addPage();
+        isFirstSection = false;
+        currentY = MARGIN_TOP;
+        pdf.addImage(imgData, 'JPEG', MARGIN_X, currentY, CONTENT_W, sectionMmHeight, undefined, 'FAST');
+        currentY += sectionMmHeight + 3;
+      } else {
+        // Section taller than a full page — slice it
+        if (!isFirstSection) pdf.addPage();
+        isFirstSection = false;
+        currentY = MARGIN_TOP;
+        const totalSlices = Math.ceil(sectionMmHeight / PAGE_USABLE_H);
+        for (let s = 0; s < totalSlices; s++) {
+          if (s > 0) { pdf.addPage(); currentY = MARGIN_TOP; }
+          const yOffset = currentY - s * PAGE_USABLE_H;
+          pdf.addImage(imgData, 'JPEG', MARGIN_X, yOffset, CONTENT_W, sectionMmHeight, undefined, 'FAST');
+        }
+        const remainder = sectionMmHeight - (totalSlices - 1) * PAGE_USABLE_H;
+        currentY = MARGIN_TOP + remainder + 3;
+      }
+    }
+
+    if (isFirstSection) {
+      throw new Error('Keine einzige Sektion konnte gerendert werden.');
+    }
+
+    console.log('[Aufmaß-PDF] Erfolgreich erstellt');
+  } finally {
+    // Always clean up the sandbox
+    document.body.removeChild(sandbox);
+  }
+}
+
+// Modal that shows "PDF ist fertig" with a button.
+// User clicks → window.open runs INSIDE the click handler → no popup blocker.
+function showPdfReadyModal(blobUrl, filename) {
+  // Reuse or create the modal
+  let modal = document.getElementById('pdf-ready-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'pdf-ready-modal';
+    modal.className = 'modal-overlay';
+    // Use inline styles for guaranteed display, independent of CSS load order
+    modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; display:none; align-items:center; justify-content:center; padding:20px;';
+    modal.innerHTML = `
+      <div style="max-width: 440px; width: 100%; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div style="padding: 28px 28px 22px; text-align: center;">
+          <div style="font-size: 44px; margin-bottom: 10px;">📄</div>
+          <h2 style="font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', serif; font-size: 22px; font-weight: 500; margin: 0 0 8px; color: #0F0F0F;">PDF ist fertig</h2>
+          <p id="pdf-ready-filename" style="font-size: 13px; color: #6B6B6B; margin: 0 0 22px; font-variant-numeric: tabular-nums;"></p>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button type="button" id="pdf-ready-open" style="padding: 14px 20px; background: #1F4E47; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit;">📂 In neuem Tab öffnen</button>
+            <button type="button" id="pdf-ready-download" style="padding: 14px 20px; background: white; color: #1F4E47; border: 1.5px solid #1F4E47; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit;">⬇ Herunterladen</button>
+            <button type="button" id="pdf-ready-close" style="padding: 10px 20px; background: transparent; color: #6B6B6B; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-family: inherit; margin-top: 4px;">Schließen</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  const fileEl = modal.querySelector('#pdf-ready-filename');
+  if (fileEl) fileEl.textContent = filename;
+
+  const closeModal = () => {
+    modal.style.display = 'none';
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+  };
+
+  // Re-bind handlers (replace nodes to clear previous listeners)
+  const openBtn = modal.querySelector('#pdf-ready-open');
+  const downloadBtn = modal.querySelector('#pdf-ready-download');
+  const closeBtn = modal.querySelector('#pdf-ready-close');
+
+  const newOpen = openBtn.cloneNode(true); openBtn.replaceWith(newOpen);
+  const newDownload = downloadBtn.cloneNode(true); downloadBtn.replaceWith(newDownload);
+  const newClose = closeBtn.cloneNode(true); closeBtn.replaceWith(newClose);
+
+  newOpen.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // Direct synchronous window.open inside user gesture → not blocked by Safari
+    const w = window.open(blobUrl, '_blank');
+    if (!w) {
+      // Fallback if popup blocker still fires: navigate via anchor
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+    closeModal();
+  });
+
+  newDownload.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    closeModal();
+  });
+
+  newClose.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeModal();
+  });
+
+  // NO backdrop-click-to-close — caused premature dismissal on iPad.
+  // User must use the explicit "Schließen" button.
+
+  // Show modal — use direct style assignment (not classList) for guaranteed visibility
+  modal.style.display = 'flex';
 }
 
 function printDocBrowser(docEl) {
@@ -3930,72 +4153,110 @@ function renderQuoteDoc() {
 
 function renderAufmassDoc() {
   const today = fmtDate(new Date().toISOString());
-  return `
-    <div class="doc">
-      <article class="doc-page">
-        <div class="doc-body">
-          <div class="doc-letterhead">
-            <div><div class="doc-logo">Raumgrad<span class="doc-logo-dot">°</span></div>
-              <div class="doc-logo-tagline">Aufmaß-Dokumentation</div></div>
-            <div class="doc-letterhead-meta">Datum: ${today}<br>Projekt: ${labelType()}<br>Räume: ${state.rooms.length}</div>
-          </div>
-          <div class="doc-addresses">
-            <div class="doc-address-block"><div class="doc-address-label">Kunde</div>
-              <div class="doc-address-content">${[state.customer.salutation, state.customer.firstName, state.customer.lastName].filter(Boolean).join(' ')}<br>${state.customer.street}<br>${state.customer.zip} ${state.customer.city}<br>${state.customer.phone}</div></div>
-            <div class="doc-address-block" style="text-align:right"><div class="doc-address-label">Termin</div><div class="doc-address-content">${fmtDate(state.customer.appointment)}</div></div>
-          </div>
-          ${state.projectNotes && state.projectNotes.trim() ? `
-            <div class="amdoc-project-notes">
-              <div class="amdoc-project-notes-label">Projekt-Notizen</div>
-              <div class="amdoc-project-notes-content">${escapeHtml(state.projectNotes).replace(/\n/g, '<br>')}</div>
-            </div>
-          ` : ''}
-          <h2 class="doc-title">Räume · Aufmaß</h2>
-          ${state.rooms.map((room, i) => {
-            const calc = calculateRoom(room);
-            const p = PRODUCTS_INDOOR.find(x => x.sku === state.selectedDevices[room.id]);
-            const o = state.outdoorMode === 'individual' ? PRODUCTS_OUTDOOR.find(x => x.sku === state.selectedOutdoorPerRoom[room.id]) : null;
-            return `
-              <div class="amdoc-room">
-                <div class="amdoc-room-title">${String(i+1).padStart(2,'0')} · ${room.name || 'Raum ' + (i+1)}</div>
-                <div class="amdoc-grid">
-                  <div><div class="amdoc-cell-label">Fläche</div><div class="amdoc-cell-value">${fmtNum(room.area,1)} m²</div></div>
-                  <div><div class="amdoc-cell-label">Höhe</div><div class="amdoc-cell-value">${fmtNum(room.height,2)} m</div></div>
-                  <div><div class="amdoc-cell-label">Stockwerk</div><div class="amdoc-cell-value">${FLOOR_LABEL[room.floor]}</div></div>
-                  <div><div class="amdoc-cell-label">Dämmung</div><div class="amdoc-cell-value">${INSULATION_LABEL[room.insulation]}</div></div>
-                  <div><div class="amdoc-cell-label">Fenster</div><div class="amdoc-cell-value">${fmtNum(room.windowArea,1)} m²</div></div>
-                  <div><div class="amdoc-cell-label">Ausrichtung</div><div class="amdoc-cell-value">${ORIENTATION_LABEL[room.orientation]}</div></div>
-                  <div><div class="amdoc-cell-label">Verschattung</div><div class="amdoc-cell-value">${room.externalShading ? 'ja' : 'nein'}</div></div>
-                  <div><div class="amdoc-cell-label">Korrektur</div><div class="amdoc-cell-value">${room.correctionPct > 0 ? '+' : ''}${room.correctionPct} %</div></div>
-                  <div><div class="amdoc-cell-label">Berechnung</div><div class="amdoc-cell-value">${fmtNum(calc.rawKw,2)} kW</div></div>
-                  <div><div class="amdoc-cell-label">Empfehlung</div><div class="amdoc-cell-value">${fmtNum(calc.recommendedKw,1)} kW</div></div>
-                  <div><div class="amdoc-cell-label">Auslegung</div><div class="amdoc-cell-value" style="color:#1F4E47">${fmtNum(room.finalKw,1)} kW</div></div>
-                  <div><div class="amdoc-cell-label">Innengerät</div><div class="amdoc-cell-value">${p ? `${p.brand} ${p.name}` : '—'}</div></div>
-                </div>
-                ${o ? `<div class="amdoc-notes">Außengerät: ${o.brand} ${o.name} (${o.kw} kW)</div>` : ''}
-                ${room.correctionReason ? `<div class="amdoc-notes">Korrektur-Begründung: ${room.correctionReason}</div>` : ''}
-                ${room.notes ? `<div class="amdoc-notes">Notizen: ${room.notes}</div>` : ''}
-                ${renderAmdocPhotos(room.id)}
-              </div>
-            `;
-          }).join('')}
-          ${renderAmdocOutdoorPhotos()}
+
+  // We split the document into multiple .amdoc-section chunks.
+  // Each section becomes a "PDF unit" that can be rendered separately,
+  // avoiding canvas-too-big issues with very long documents.
+  let html = `<div class="doc amdoc">`;
+
+  // Section 1: Header (letterhead + addresses + project notes)
+  html += `
+    <div class="amdoc-section amdoc-section-header" data-amdoc-section="header">
+      <div class="doc-letterhead">
+        <div><div class="doc-logo">Raumgrad<span class="doc-logo-dot">°</span></div>
+          <div class="doc-logo-tagline">Aufmaß-Dokumentation</div></div>
+        <div class="doc-letterhead-meta">Datum: ${today}<br>Projekt: ${labelType()}<br>Räume: ${state.rooms.length}</div>
+      </div>
+      <div class="doc-addresses">
+        <div class="doc-address-block"><div class="doc-address-label">Kunde</div>
+          <div class="doc-address-content">${escapeHtml([state.customer.salutation, state.customer.firstName, state.customer.lastName].filter(Boolean).join(' '))}<br>${escapeHtml(state.customer.street || '')}<br>${escapeHtml(state.customer.zip + ' ' + state.customer.city)}<br>${escapeHtml(state.customer.phone || '')}</div></div>
+        <div class="doc-address-block" style="text-align:right"><div class="doc-address-label">Termin</div><div class="doc-address-content">${fmtDate(state.customer.appointment)}</div></div>
+      </div>
+      ${state.projectNotes && state.projectNotes.trim() ? `
+        <div class="amdoc-project-notes">
+          <div class="amdoc-project-notes-label">Projekt-Notizen</div>
+          <div class="amdoc-project-notes-content">${escapeHtml(state.projectNotes).replace(/\n/g, '<br>')}</div>
         </div>
-        <div class="doc-foot-wrap">
-          <div class="doc-page-meta">
-            <div>Aufmaß · ${today}</div>
-            <div>Raumgrad<span class="accent">°</span> GmbH · raumgrad.de</div>
-          </div>
-          <div class="doc-foot">
-            <div class="doc-foot-block"><strong>Aufgenommen von</strong>__________________</div>
-            <div class="doc-foot-block"><strong>Unterschrift Monteur</strong>__________________</div>
-            <div class="doc-foot-block"><strong>Datum</strong>${today}</div>
-            <div class="doc-foot-block"><strong>Raumgrad GmbH</strong>06039 / 468 90 30<br>raumgrad.de</div>
-          </div>
-        </div>
-      </article>
+      ` : ''}
+      <h2 class="doc-title">Räume · Aufmaß</h2>
     </div>
   `;
+
+  // Section 2..N: One section per room
+  state.rooms.forEach((room, i) => {
+    const calc = calculateRoom(room);
+    const p = PRODUCTS_INDOOR.find(x => x.sku === state.selectedDevices[room.id]);
+    let outdoorLabel = '';
+    if (state.outdoorMode === 'individual') {
+      const o = PRODUCTS_OUTDOOR.find(x => x.sku === state.selectedOutdoorPerRoom[room.id]);
+      if (o) outdoorLabel = `${o.brand} ${o.name} (${o.kw} kW)`;
+    } else if (state.outdoorMode === 'circles') {
+      const circle = state.outdoorCircles.find(c => c.roomIds.includes(room.id));
+      if (circle && circle.sku) {
+        const o = PRODUCTS_OUTDOOR.find(x => x.sku === circle.sku);
+        if (o) outdoorLabel = `${o.brand} ${o.name} (${o.kw} kW, Außenkreis)`;
+      }
+    }
+
+    html += `
+      <div class="amdoc-section amdoc-section-room" data-amdoc-section="room-${room.id}">
+        <div class="amdoc-room">
+          <div class="amdoc-room-title">${String(i+1).padStart(2,'0')} · ${escapeHtml(room.name || 'Raum ' + (i+1))}</div>
+          <div class="amdoc-grid">
+            <div><div class="amdoc-cell-label">Fläche</div><div class="amdoc-cell-value">${fmtNum(room.area,1)} m²</div></div>
+            <div><div class="amdoc-cell-label">Höhe</div><div class="amdoc-cell-value">${fmtNum(room.height,2)} m</div></div>
+            <div><div class="amdoc-cell-label">Stockwerk</div><div class="amdoc-cell-value">${FLOOR_LABEL[room.floor]}</div></div>
+            <div><div class="amdoc-cell-label">Dämmung</div><div class="amdoc-cell-value">${INSULATION_LABEL[room.insulation]}</div></div>
+            <div><div class="amdoc-cell-label">Fenster</div><div class="amdoc-cell-value">${fmtNum(room.windowArea,1)} m²</div></div>
+            <div><div class="amdoc-cell-label">Ausrichtung</div><div class="amdoc-cell-value">${ORIENTATION_LABEL[room.orientation]}</div></div>
+            <div><div class="amdoc-cell-label">Verschattung</div><div class="amdoc-cell-value">${room.externalShading ? 'ja' : 'nein'}</div></div>
+            <div><div class="amdoc-cell-label">Korrektur</div><div class="amdoc-cell-value">${room.correctionPct > 0 ? '+' : ''}${room.correctionPct} %</div></div>
+            <div><div class="amdoc-cell-label">Berechnung</div><div class="amdoc-cell-value">${fmtNum(calc.rawKw,2)} kW</div></div>
+            <div><div class="amdoc-cell-label">Empfehlung</div><div class="amdoc-cell-value">${fmtNum(calc.recommendedKw,1)} kW</div></div>
+            <div><div class="amdoc-cell-label">Auslegung</div><div class="amdoc-cell-value" style="color:#1F4E47">${fmtNum(room.finalKw,1)} kW</div></div>
+            <div><div class="amdoc-cell-label">Innengerät</div><div class="amdoc-cell-value">${p ? escapeHtml(p.brand + ' ' + p.name) : '—'}</div></div>
+          </div>
+          ${outdoorLabel ? `<div class="amdoc-notes">Außengerät: ${escapeHtml(outdoorLabel)}</div>` : ''}
+          ${room.correctionReason ? `<div class="amdoc-notes">Korrektur-Begründung: ${escapeHtml(room.correctionReason)}</div>` : ''}
+          ${room.notes ? `<div class="amdoc-notes">Notizen: ${escapeHtml(room.notes)}</div>` : ''}
+          ${renderAmdocPhotos(room.id)}
+        </div>
+      </div>
+    `;
+  });
+
+  // Section for outdoor area photos (if any)
+  if (getPhotosFor('outdoor').length > 0) {
+    html += `
+      <div class="amdoc-section amdoc-section-room" data-amdoc-section="outdoor-photos">
+        <div class="amdoc-room">
+          <div class="amdoc-room-title">Außenbereich</div>
+          ${renderAmdocPhotos('outdoor')}
+        </div>
+      </div>
+    `;
+  }
+
+  // Final section: footer with signature
+  html += `
+    <div class="amdoc-section amdoc-section-footer" data-amdoc-section="footer">
+      <div class="doc-foot-wrap">
+        <div class="doc-page-meta">
+          <div>Aufmaß · ${today}</div>
+          <div>Raumgrad<span class="accent">°</span> GmbH · raumgrad.de</div>
+        </div>
+        <div class="doc-foot">
+          <div class="doc-foot-block"><strong>Aufgenommen von</strong>${escapeHtml(state.author.name || '__________________')}</div>
+          <div class="doc-foot-block"><strong>Unterschrift Monteur</strong>__________________</div>
+          <div class="doc-foot-block"><strong>Datum</strong>${today}</div>
+          <div class="doc-foot-block"><strong>Raumgrad GmbH</strong>06039 / 468 90 30<br>raumgrad.de</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  html += `</div>`;
+  return html;
 }
 
 /* ========================================================== GOOGLE SHEETS LOADER ========================================================== */
