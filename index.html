@@ -319,6 +319,29 @@
 .amdoc-notes { margin-top: 8px; font-size: 9pt; font-style: italic; color: #4B4B4B; }
 
 .amdoc-photo-section { margin-top: 12px; }
+
+.amdoc-project-notes {
+  margin: 6mm 0;
+  padding: 4mm 5mm;
+  background: #F4F1EA;
+  border-left: 3px solid #1F4E47;
+  border-radius: 0 3px 3px 0;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.amdoc-project-notes-label {
+  font-size: 8pt;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #1F4E47;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.amdoc-project-notes-content {
+  font-size: 10pt;
+  color: #0F0F0F;
+  line-height: 1.5;
+}
 .amdoc-photo-label {
   font-size: 7.5pt;
   text-transform: uppercase;
@@ -706,6 +729,13 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; background: v
 .overview-totals-grand span:last-child { font-weight: 500; }
 
 .photo-block { margin-top: 24px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 18px; }
+
+.project-notes-block { margin-bottom: 20px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; }
+.project-notes-head { margin-bottom: 10px; }
+.project-notes-title { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 18px; font-weight: 500; letter-spacing: -0.01em; color: var(--text); }
+.project-notes-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+.project-notes-block .textarea { width: 100%; min-height: 70px; padding: 10px 12px; font-size: 14px; line-height: 1.5; background: white; border: 1.5px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: inherit; -webkit-appearance: none; appearance: none; resize: vertical; }
+.project-notes-block .textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .photo-block-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
 .photo-block-title { font-family: 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', 'Droid Serif', Times, 'Source Serif Pro', serif; font-size: 19px; font-weight: 500; letter-spacing: -0.01em; color: var(--text); display: flex; align-items: center; gap: 8px; }
 .photo-block-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
@@ -1056,7 +1086,6 @@ const STEPS = [
   { id: 'rooms',    label: 'Räume' },
   { id: 'indoor',   label: 'Innen' },
   { id: 'outdoor',  label: 'Außen' },
-  { id: 'doku',     label: 'Doku' },
   { id: 'extras',   label: 'Zusatz' },
   { id: 'summary',  label: 'Angebot' },
 ];
@@ -1107,6 +1136,7 @@ const state = {
   montageDays: null,   // Number of installation days, manually entered by technician
   extrasPrefilled: false, // Tracks whether autoPrefillExtras has already run for this quote
   marginExcluded: {},     // { positionKey: true } — positions hidden from margin view only (don't affect quote)
+  projectNotes: '',       // General notes about the project (for Aufmaß-PDF, not in quote)
 };
 
 const SKU_MONTAGE_DAY = 'ACC-MONT';  // SKU for "Tagessatz Montage" — must exist in the Sheet's Zubehör tab
@@ -1705,7 +1735,6 @@ function render() {
   if (id === 'rooms') main.innerHTML = renderRoomsScreen();
   if (id === 'indoor') main.innerHTML = renderIndoorScreen();
   if (id === 'outdoor') main.innerHTML = renderOutdoorScreen();
-  if (id === 'doku') main.innerHTML = renderDokuScreen();
   if (id === 'extras') main.innerHTML = renderExtrasScreen();
   if (id === 'summary') main.innerHTML = renderSummaryScreen();
   renderBottomNav();
@@ -1770,11 +1799,59 @@ function renderRoomsScreen() {
       <div class="screen-header">
         <div class="screen-label">Schritt 2 · Aufmaß</div>
         <h1 class="screen-title"><span class="accent">Räume</span> erfassen</h1>
-        <p class="screen-subtitle">Jeden zu kühlenden Raum aufnehmen. Die Empfehlung wird live berechnet.</p>
+        <p class="screen-subtitle">Jeden zu kühlenden Raum aufnehmen. Notizen und Fotos kommen ins Aufmaß-PDF, nicht ins Angebot.</p>
       </div>
+
+      <div class="project-notes-block">
+        <div class="project-notes-head">
+          <div>
+            <div class="project-notes-title">Projekt-Notizen</div>
+            <div class="project-notes-sub">Generelle Hinweise zum Auftrag (nur für interne Aufmaß-Dokumentation, nicht im Angebot).</div>
+          </div>
+        </div>
+        <textarea
+          class="textarea"
+          id="project-notes-input"
+          rows="3"
+          placeholder="z. B. Hauseigentümer ist Schwiegersohn, Schlüssel beim Nachbarn, Zufahrt über Hinterhof, Hund im Garten frei …"
+          oninput="state.projectNotes = this.value"
+        >${escapeHtml(state.projectNotes || '')}</textarea>
+      </div>
+
+      ${renderProjectPhotosBlock()}
+
       <div class="room-list" id="room-list">${state.rooms.map((r, i) => renderRoomCard(r, i)).join('')}</div>
       <div style="margin-top: 14px;"><button type="button" class="btn-add" onclick="addRoom()">+ Raum hinzufügen</button></div>
     </section>
+  `;
+}
+
+function renderProjectPhotosBlock() {
+  // Photo block lives here now (moved from former Doku step).
+  // Slot per room + one for outdoor area, like before.
+  const slots = [];
+  for (const room of state.rooms) slots.push({ key: room.id, label: room.name || 'Raum', meta: `${room.area} m²` });
+  slots.push({ key: 'outdoor', label: 'Außenbereich', meta: 'Position Außengerät, Leitungsführung etc.' });
+  const totalPhotos = slots.reduce((s, slot) => s + getPhotosFor(slot.key).length, 0);
+
+  return `
+    <div class="photo-block" style="margin-top: 18px;">
+      <div class="photo-block-head">
+        <div>
+          <div class="photo-block-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Fotos zur Montage
+          </div>
+          <div class="photo-block-sub">Pro Raum und für den Außenbereich. ${totalPhotos > 0 ? `<strong style="color: var(--accent);">${totalPhotos} Foto${totalPhotos !== 1 ? 's' : ''}</strong> hinzugefügt.` : 'Erscheinen nur im Aufmaß-PDF, nicht im Angebot.'}</div>
+        </div>
+      </div>
+      ${totalPhotos > 0 ? `
+        <div class="photo-warning">
+          ⚠ Fotos werden <strong>nur in dieser Sitzung</strong> gespeichert. Erstelle das Aufmaß-PDF, bevor du die App schließt oder das Tablet sperrst.
+        </div>
+      ` : ''}
+      ${slots.map(slot => renderPhotoSlot(slot)).join('')}
+    </div>
   `;
 }
 
@@ -2615,10 +2692,12 @@ function renderExtrasScreen() {
   return `
     <section class="screen">
       <div class="screen-header">
-        <div class="screen-label">Schritt 6 · Zubehör, Anpassungen & Übersicht</div>
+        <div class="screen-label">Schritt 5 · Zubehör, Anpassungen & Übersicht</div>
         <h1 class="screen-title"><span class="accent">Positionen</span> &amp; Preise</h1>
-        <p class="screen-subtitle">Standard-Zubehör anpassen, Preise individualisieren, eigene Positionen ergänzen.</p>
+        <p class="screen-subtitle">Montagedauer einschätzen, Standard-Zubehör anpassen, eigene Positionen ergänzen.</p>
       </div>
+
+      ${renderMontageDaysBlock()}
 
       <h2 class="extras-section-title">Zubehör & Montage</h2>
       <p class="extras-section-sub">Voreingestellte Standardwerte — vor Ort anpassen.</p>
@@ -3167,7 +3246,7 @@ function renderPhotoSummary() {
             : 'Keine Fotos hinzugefügt'}
         </div>
       </div>
-      <button type="button" class="btn btn-ghost" style="font-size: 13px;" onclick="goToStep('doku')">Bearbeiten →</button>
+      <button type="button" class="btn btn-ghost" style="font-size: 13px;" onclick="goToStep('rooms')">Bearbeiten →</button>
     </div>
   `;
 }
@@ -3281,7 +3360,7 @@ function renderSummaryScreen() {
 
   return `
     <section class="screen">
-      <div class="screen-header"><div class="screen-label">Schritt 7 · Bereit zum Drucken</div>
+      <div class="screen-header"><div class="screen-label">Schritt 6 · Bereit zum Drucken</div>
         <h1 class="screen-title">Endgültige <span class="accent">Übersicht</span></h1>
         <p class="screen-subtitle">So wird das Angebot gedruckt. Änderungen vornehmen? Zurück zu Schritt 5.</p></div>
 
@@ -3516,7 +3595,6 @@ async function generatePDF(docEl) {
     if (pages.length === 0) throw new Error('Keine Seiten im Dokument gefunden.');
 
     for (let i = 0; i < pages.length; i++) {
-      if (i > 0) pdf.addPage();
       const page = pages[i];
 
       // Capture as canvas at retina resolution
@@ -3531,59 +3609,81 @@ async function generatePDF(docEl) {
         windowHeight: page.offsetHeight,
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.94);
-      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+      // Calculate how the canvas would fit on A4 (210mm wide).
+      // Aspect ratio: imgHeight / imgWidth = canvas.height / canvas.width
+      const A4_W = 210, A4_H = 297;
+      const canvasAspect = canvas.height / canvas.width;
+      const imgFullHeight = A4_W * canvasAspect;  // mm at 210mm width
 
-      // Bullet-proof QR injection: draw it DIRECTLY onto the PDF page using jsPDF.
-      // jsPDF handles PNG data URLs natively — independent of html2canvas.
-      const qrImg = page.querySelector('#quote-qr img');
-      if (qrImg && qrImg.src) {
-        try {
-          // Compute QR position in millimeters
-          const pageRect = page.getBoundingClientRect();
-          const qrRect = qrImg.getBoundingClientRect();
-          const mmPerPx = 210 / pageRect.width;
-          const x = (qrRect.left - pageRect.left) * mmPerPx;
-          const y = (qrRect.top - pageRect.top) * mmPerPx;
-          const w = qrRect.width * mmPerPx;
-          const h = qrRect.height * mmPerPx;
+      if (imgFullHeight <= A4_H + 5) {
+        // Fits on one page — render normally
+        if (i > 0) pdf.addPage();
+        const imgData = canvas.toDataURL('image/jpeg', 0.94);
+        pdf.addImage(imgData, 'JPEG', 0, 0, A4_W, imgFullHeight, undefined, 'FAST');
 
-          // Ensure we have a PNG data URL (blob URL → data URL conversion)
-          let qrPng = qrImg.src;
-          if (qrPng.startsWith('blob:')) {
-            const resp = await fetch(qrPng);
-            const blob = await resp.blob();
-            qrPng = await new Promise((resolve, reject) => {
-              const fr = new FileReader();
-              fr.onloadend = () => resolve(fr.result);
-              fr.onerror = () => reject(new Error('Blob read failed'));
-              fr.readAsDataURL(blob);
-            });
-          }
+        // Inject QR for quote document
+        const qrImg = page.querySelector('#quote-qr img');
+        if (qrImg && qrImg.src) {
+          try {
+            const pageRect = page.getBoundingClientRect();
+            const qrRect = qrImg.getBoundingClientRect();
+            const mmPerPx = 210 / pageRect.width;
+            const x = (qrRect.left - pageRect.left) * mmPerPx;
+            const y = (qrRect.top - pageRect.top) * mmPerPx;
+            const w = qrRect.width * mmPerPx;
+            const h = qrRect.height * mmPerPx;
+            let qrPng = qrImg.src;
+            if (qrPng.startsWith('blob:')) {
+              const resp = await fetch(qrPng);
+              const blob = await resp.blob();
+              qrPng = await new Promise((resolve, reject) => {
+                const fr = new FileReader();
+                fr.onloadend = () => resolve(fr.result);
+                fr.onerror = () => reject(new Error('Blob read failed'));
+                fr.readAsDataURL(blob);
+              });
+            }
+            pdf.setFillColor(255, 255, 255);
+            pdf.rect(x, y, w, h, 'F');
+            pdf.addImage(qrPng, 'PNG', x, y, w, h, undefined, 'NONE');
+          } catch(qrErr) { console.warn('QR injection failed:', qrErr); }
+        }
+      } else {
+        // Content is taller than A4 — slice into multiple pages.
+        // We draw the SAME image on each PDF page, but offset its Y position
+        // so different parts of the image show through the A4 viewport.
+        const totalPages = Math.ceil(imgFullHeight / A4_H);
+        const imgData = canvas.toDataURL('image/jpeg', 0.94);
 
-          // White rectangle behind, then PNG QR on top
-          pdf.setFillColor(255, 255, 255);
-          pdf.rect(x, y, w, h, 'F');
-          pdf.addImage(qrPng, 'PNG', x, y, w, h, undefined, 'NONE');
-        } catch(qrErr) {
-          console.warn('Direkter QR-Code-Einsatz fehlgeschlagen:', qrErr);
+        for (let p = 0; p < totalPages; p++) {
+          if (i > 0 || p > 0) pdf.addPage();
+          const yOffset = -p * A4_H;  // shift image up by one A4 height per page
+          pdf.addImage(imgData, 'JPEG', 0, yOffset, A4_W, imgFullHeight, undefined, 'FAST');
         }
       }
     }
 
-    // Open PDF in new tab so user can print, save, or share natively
+    // Open PDF in new tab via anchor click — works reliably on iPad/Safari
+    // unlike window.open() which gets blocked after async operations.
     const blob = pdf.output('blob');
     const url = URL.createObjectURL(blob);
-    const filename = `Angebot_${state.quoteNumber || 'Entwurf'}.pdf`;
+    // Detect document type from modal title
+    const modalTitle = document.getElementById('modal-title');
+    const isAufmass = modalTitle && /Aufmaß/i.test(modalTitle.textContent);
+    const filename = isAufmass
+      ? `Aufmass_${state.quoteNumber || 'Entwurf'}.pdf`
+      : `Angebot_${state.quoteNumber || 'Entwurf'}.pdf`;
 
-    const newWin = window.open(url, '_blank');
-    if (!newWin) {
-      // Pop-up blocked — trigger download as fallback
-      pdf.save(filename);
-    } else {
-      // Try to set the title in the new tab
-      try { newWin.document.title = filename; } catch(e) {}
-    }
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    // Free the blob after a short delay (Safari needs time to actually load it)
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
   } catch (e) {
     console.error('PDF generation failed:', e);
     alert('PDF konnte nicht erstellt werden:\n' + (e.message || e) + '\n\nVersuche es nochmal oder nutze den Browser-Druck.');
@@ -3844,6 +3944,12 @@ function renderAufmassDoc() {
               <div class="doc-address-content">${[state.customer.salutation, state.customer.firstName, state.customer.lastName].filter(Boolean).join(' ')}<br>${state.customer.street}<br>${state.customer.zip} ${state.customer.city}<br>${state.customer.phone}</div></div>
             <div class="doc-address-block" style="text-align:right"><div class="doc-address-label">Termin</div><div class="doc-address-content">${fmtDate(state.customer.appointment)}</div></div>
           </div>
+          ${state.projectNotes && state.projectNotes.trim() ? `
+            <div class="amdoc-project-notes">
+              <div class="amdoc-project-notes-label">Projekt-Notizen</div>
+              <div class="amdoc-project-notes-content">${escapeHtml(state.projectNotes).replace(/\n/g, '<br>')}</div>
+            </div>
+          ` : ''}
           <h2 class="doc-title">Räume · Aufmaß</h2>
           ${state.rooms.map((room, i) => {
             const calc = calculateRoom(room);
@@ -4341,7 +4447,7 @@ function resetAll() {
   if (!confirm('Aufmaß komplett zurücksetzen?')) return;
   state.stepIndex = 0;
   state.customer = { salutation: 'Herr', firstName: '', lastName: '', street: '', zip: '', city: '', phone: '', email: '', appointment: new Date().toISOString().slice(0,10) };
-  state.rooms = []; state.selectedDevices = {}; state.outdoorMode = 'individual'; state.selectedOutdoor = null; state.selectedOutdoorPerRoom = {}; state.extras = []; state.quoteNumber = null; state.expandAllDevices = {}; state.expandAllOutdoor = false; state.expandAllOutdoorPerRoom = {}; state.indoorFilters = {}; state.outdoorFilters = {}; state.priceOverrides = {}; state.adjustments = []; state.photos = {}; state.montageDays = null; state.extrasPrefilled = false; state.marginExcluded = {}; state.collapsedIndoorRooms = {}; state.collapsedOutdoorRooms = {}; state.outdoorCircles = [];
+  state.rooms = []; state.selectedDevices = {}; state.outdoorMode = 'individual'; state.selectedOutdoor = null; state.selectedOutdoorPerRoom = {}; state.extras = []; state.quoteNumber = null; state.expandAllDevices = {}; state.expandAllOutdoor = false; state.expandAllOutdoorPerRoom = {}; state.indoorFilters = {}; state.outdoorFilters = {}; state.priceOverrides = {}; state.adjustments = []; state.photos = {}; state.montageDays = null; state.extrasPrefilled = false; state.marginExcluded = {}; state.collapsedIndoorRooms = {}; state.collapsedOutdoorRooms = {}; state.outdoorCircles = []; state.projectNotes = '';
   const r = makeRoom(); r.name = 'Wohnzimmer'; const calc = calculateRoom(r); r.finalKw = calc.recommendedKw; state.rooms.push(r);
   render();
 }
