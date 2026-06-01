@@ -3687,147 +3687,126 @@ async function generateAngebotPdf(pdf, docEl, A4_W, A4_H) {
 }
 
 async function generateAufmassPdf(pdf, docEl, A4_W, A4_H) {
-  // Strategy: clone the Aufmaß document into an off-screen sandbox to isolate it
-  // from any modal/sticky/overflow shenanigans, then render section by section.
+  // Strategy: render each .amdoc-section directly from the visible DOM (which
+  // already lives inside the open preview modal). This is more reliable than
+  // off-screen sandboxes — html2canvas on iOS struggles with `position: fixed`
+  // containers and flexbox layouts in detached/hidden contexts.
 
   const MARGIN_TOP = 14;
   const MARGIN_X = 12;
   const CONTENT_W = A4_W - 2 * MARGIN_X;
   const PAGE_USABLE_H = A4_H - MARGIN_TOP - 10;
 
-  // === 1. Build off-screen sandbox ===
-  // Width = exactly the content width at A4 size, in pixels.
-  // We use ~3.78 px/mm (standard CSS reference).
-  const sandboxWidthPx = Math.round(A4_W * 3.78);  // ~794 px for 210mm A4 width
-
-  const sandbox = document.createElement('div');
-  sandbox.id = 'aufmass-pdf-sandbox';
-  sandbox.style.cssText = `
-    position: fixed;
-    left: -10000px;
-    top: 0;
-    width: ${sandboxWidthPx}px;
-    background: white;
-    z-index: -1;
-    pointer-events: none;
-  `;
-  // Clone the entire Aufmaß doc into the sandbox
-  sandbox.innerHTML = docEl.outerHTML;
-  document.body.appendChild(sandbox);
-
-  try {
-    // === 2. Wait for all images in the clone to fully load ===
-    const clonedImgs = sandbox.querySelectorAll('img');
-    if (clonedImgs.length > 0) {
-      console.log(`[Aufmaß-PDF] Warte auf ${clonedImgs.length} Bilder...`);
-      await Promise.all(Array.from(clonedImgs).map((img, idx) => {
-        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-        return new Promise(resolve => {
-          const done = () => resolve();
-          img.addEventListener('load', done, { once: true });
-          img.addEventListener('error', done, { once: true });
-          setTimeout(() => {
-            console.warn(`[Aufmaß-PDF] Bild ${idx} Timeout nach 3s`);
-            resolve();
-          }, 3000);
-        });
-      }));
-    }
-
-    // Extra render tick
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-    // === 3. Get sections from the SANDBOX (not original) ===
-    const sections = sandbox.querySelectorAll('.amdoc-section');
-    if (sections.length === 0) {
-      throw new Error('Keine .amdoc-section Elemente im Sandbox gefunden. Aufmaß-Doku ist leer oder falsch gerendert.');
-    }
-    console.log(`[Aufmaß-PDF] ${sections.length} Sektionen gefunden`);
-
-    let currentY = MARGIN_TOP;
-    let isFirstSection = true;
-
-    for (let i = 0; i < sections.length; i++) {
-      const section = sections[i];
-
-      // Skip sections with zero or near-zero size
-      const rect = section.getBoundingClientRect();
-      if (rect.width < 10 || rect.height < 10) {
-        console.warn(`[Aufmaß-PDF] Sektion ${i} hat keine Größe (${rect.width}x${rect.height}), übersprungen`);
-        continue;
-      }
-
-      // Render section to canvas
-      let canvas;
-      try {
-        canvas = await html2canvas(section, {
-          scale: 1.5,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-          allowTaint: true,
-          imageTimeout: 5000,
-        });
-      } catch (captureErr) {
-        console.error(`[Aufmaß-PDF] Sektion ${i} Render fehlgeschlagen:`, captureErr);
-        continue;
-      }
-
-      if (!canvas || canvas.width === 0 || canvas.height === 0) {
-        console.warn(`[Aufmaß-PDF] Sektion ${i}: Canvas leer, übersprungen`);
-        continue;
-      }
-
-      const sectionAspect = canvas.height / canvas.width;
-      const sectionMmHeight = CONTENT_W * sectionAspect;
-
-      let imgData;
-      try {
-        imgData = canvas.toDataURL('image/jpeg', 0.85);
-      } catch (toDataErr) {
-        console.error(`[Aufmaß-PDF] Sektion ${i} toDataURL fehlgeschlagen:`, toDataErr);
-        continue;
-      }
-
-      const remainingOnPage = PAGE_USABLE_H - (currentY - MARGIN_TOP);
-
-      if (sectionMmHeight <= remainingOnPage + 1) {
-        // Fits on current page
-        if (isFirstSection) isFirstSection = false;
-        pdf.addImage(imgData, 'JPEG', MARGIN_X, currentY, CONTENT_W, sectionMmHeight, undefined, 'FAST');
-        currentY += sectionMmHeight + 3;
-      } else if (sectionMmHeight <= PAGE_USABLE_H) {
-        // Start new page
-        if (!isFirstSection) pdf.addPage();
-        isFirstSection = false;
-        currentY = MARGIN_TOP;
-        pdf.addImage(imgData, 'JPEG', MARGIN_X, currentY, CONTENT_W, sectionMmHeight, undefined, 'FAST');
-        currentY += sectionMmHeight + 3;
-      } else {
-        // Section taller than a full page — slice it
-        if (!isFirstSection) pdf.addPage();
-        isFirstSection = false;
-        currentY = MARGIN_TOP;
-        const totalSlices = Math.ceil(sectionMmHeight / PAGE_USABLE_H);
-        for (let s = 0; s < totalSlices; s++) {
-          if (s > 0) { pdf.addPage(); currentY = MARGIN_TOP; }
-          const yOffset = currentY - s * PAGE_USABLE_H;
-          pdf.addImage(imgData, 'JPEG', MARGIN_X, yOffset, CONTENT_W, sectionMmHeight, undefined, 'FAST');
-        }
-        const remainder = sectionMmHeight - (totalSlices - 1) * PAGE_USABLE_H;
-        currentY = MARGIN_TOP + remainder + 3;
-      }
-    }
-
-    if (isFirstSection) {
-      throw new Error('Keine einzige Sektion konnte gerendert werden.');
-    }
-
-    console.log('[Aufmaß-PDF] Erfolgreich erstellt');
-  } finally {
-    // Always clean up the sandbox
-    document.body.removeChild(sandbox);
+  // === 1. Preload all images in the doc ===
+  const imgs = docEl.querySelectorAll('img');
+  if (imgs.length > 0) {
+    console.log(`[Aufmaß-PDF] Warte auf ${imgs.length} Bilder...`);
+    await Promise.all(Array.from(imgs).map((img, idx) => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return new Promise(resolve => {
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+        setTimeout(() => {
+          console.warn(`[Aufmaß-PDF] Bild ${idx} Timeout nach 3s`);
+          resolve();
+        }, 3000);
+      });
+    }));
   }
+
+  // Wait for fonts and another paint cycle so layout is settled
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch(e) {}
+  }
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  // === 2. Get sections directly from the visible doc ===
+  const sections = docEl.querySelectorAll('.amdoc-section');
+  if (sections.length === 0) {
+    throw new Error('Keine .amdoc-section Elemente gefunden. Aufmaß-Doku ist leer.');
+  }
+  console.log(`[Aufmaß-PDF] ${sections.length} Sektionen gefunden`);
+
+  let currentY = MARGIN_TOP;
+  let isFirstSection = true;
+  let renderedCount = 0;
+
+  for (let i = 0; i < sections.length; i++) {
+    const section = sections[i];
+    const sectionLabel = section.dataset.amdocSection || `#${i}`;
+
+    // Don't skip on size check — render attempt is cheaper than missing content
+    let canvas;
+    try {
+      canvas = await html2canvas(section, {
+        scale: 1.5,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        allowTaint: true,
+        imageTimeout: 5000,
+        // Use natural element width — don't override
+      });
+    } catch (captureErr) {
+      console.error(`[Aufmaß-PDF] Sektion "${sectionLabel}" Render fehlgeschlagen:`, captureErr);
+      continue;
+    }
+
+    if (!canvas || canvas.width === 0 || canvas.height === 0) {
+      console.warn(`[Aufmaß-PDF] Sektion "${sectionLabel}": Canvas leer (${canvas?.width}x${canvas?.height}), übersprungen`);
+      continue;
+    }
+
+    console.log(`[Aufmaß-PDF] Sektion "${sectionLabel}" gerendert: ${canvas.width}x${canvas.height}`);
+
+    const sectionAspect = canvas.height / canvas.width;
+    const sectionMmHeight = CONTENT_W * sectionAspect;
+
+    let imgData;
+    try {
+      imgData = canvas.toDataURL('image/jpeg', 0.85);
+    } catch (toDataErr) {
+      console.error(`[Aufmaß-PDF] Sektion "${sectionLabel}" toDataURL fehlgeschlagen:`, toDataErr);
+      continue;
+    }
+
+    const remainingOnPage = PAGE_USABLE_H - (currentY - MARGIN_TOP);
+
+    if (sectionMmHeight <= remainingOnPage + 1) {
+      // Fits on current page
+      if (isFirstSection) isFirstSection = false;
+      pdf.addImage(imgData, 'JPEG', MARGIN_X, currentY, CONTENT_W, sectionMmHeight, undefined, 'FAST');
+      currentY += sectionMmHeight + 3;
+    } else if (sectionMmHeight <= PAGE_USABLE_H) {
+      // Start new page
+      if (!isFirstSection) pdf.addPage();
+      isFirstSection = false;
+      currentY = MARGIN_TOP;
+      pdf.addImage(imgData, 'JPEG', MARGIN_X, currentY, CONTENT_W, sectionMmHeight, undefined, 'FAST');
+      currentY += sectionMmHeight + 3;
+    } else {
+      // Section taller than a full page — slice it
+      if (!isFirstSection) pdf.addPage();
+      isFirstSection = false;
+      currentY = MARGIN_TOP;
+      const totalSlices = Math.ceil(sectionMmHeight / PAGE_USABLE_H);
+      for (let s = 0; s < totalSlices; s++) {
+        if (s > 0) { pdf.addPage(); currentY = MARGIN_TOP; }
+        const yOffset = currentY - s * PAGE_USABLE_H;
+        pdf.addImage(imgData, 'JPEG', MARGIN_X, yOffset, CONTENT_W, sectionMmHeight, undefined, 'FAST');
+      }
+      const remainder = sectionMmHeight - (totalSlices - 1) * PAGE_USABLE_H;
+      currentY = MARGIN_TOP + remainder + 3;
+    }
+
+    renderedCount++;
+  }
+
+  if (renderedCount === 0) {
+    throw new Error('Keine einzige Sektion konnte gerendert werden.');
+  }
+
+  console.log(`[Aufmaß-PDF] Erfolgreich erstellt: ${renderedCount}/${sections.length} Sektionen`);
 }
 
 // Modal that shows "PDF ist fertig" with a button.
