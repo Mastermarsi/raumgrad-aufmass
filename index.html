@@ -3424,7 +3424,7 @@ function renderSummaryScreen() {
         <span>${PRODUCTS_INDOOR.length} Innen · ${PRODUCTS_OUTDOOR.length} Außen · ${ACCESSORIES.length} Zubehör</span>
       </div>
       <div style="margin-top: 8px; padding: 6px 14px; font-size: 10px; color: var(--text-soft); text-align: center; opacity: 0.6;">
-        App-Version: 2026-05-30-aufmass-v4
+        App-Version: 2026-05-30-aufmass-v5
       </div>
     </section>
   `;
@@ -3690,117 +3690,321 @@ async function generateAngebotPdf(pdf, docEl, A4_W, A4_H) {
 }
 
 async function generateAufmassPdf(pdf, docEl, A4_W, A4_H) {
-  // Strategy: render the whole doc as ONE canvas, then split it into
-  // A4-sized chunks at the canvas level (using drawImage), and feed each
-  // small chunk to jsPDF separately. This avoids:
-  //   - jsPDF "The index is not in the allowed range" errors with huge images
-  //   - iOS memory issues from giant base64 data-URLs
-  //   - rendering glitches from per-section html2canvas calls
+  // Native jsPDF rendering — no html2canvas dependency. This is bulletproof
+  // on iOS Safari because we never go through the canvas → toDataURL → PDF
+  // pipeline that triggers "index not in allowed range" errors.
 
-  // === 1. Preload all images in the doc ===
-  const imgs = docEl.querySelectorAll('img');
-  if (imgs.length > 0) {
-    console.log(`[Aufmaß-PDF] Warte auf ${imgs.length} Bilder...`);
-    await Promise.all(Array.from(imgs).map((img, idx) => {
-      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-      return new Promise(resolve => {
-        img.addEventListener('load', resolve, { once: true });
-        img.addEventListener('error', resolve, { once: true });
-        setTimeout(() => {
-          console.warn(`[Aufmaß-PDF] Bild ${idx} Timeout nach 3s`);
-          resolve();
-        }, 3000);
-      });
-    }));
+  const M = 15;                     // page margin in mm
+  const W = A4_W - 2 * M;            // content width
+  let y = M;                         // current vertical cursor
+
+  const PETROL = [31, 78, 71];
+  const MUTED  = [107, 107, 107];
+  const SOFT   = [180, 180, 180];
+  const TEXT   = [15, 15, 15];
+  const NOTES_BG = [244, 241, 234];
+
+  // Helper: ensure space for the next block, else new page
+  const ensure = (needed) => {
+    if (y + needed > A4_H - 15) {
+      pdf.addPage();
+      y = M;
+    }
+  };
+
+  // Helper: set font + color in one call
+  const setText = (sizeP, color = TEXT, weight = 'normal') => {
+    pdf.setFont('helvetica', weight);
+    pdf.setFontSize(sizeP);
+    pdf.setTextColor(color[0], color[1], color[2]);
+  };
+
+  // === HEADER (logo, date, divider) ===
+  setText(24, TEXT);
+  pdf.text('Raumgrad', M, y + 8);
+  const logoWidth = pdf.getTextWidth('Raumgrad');
+  setText(24, PETROL);
+  pdf.text('°', M + logoWidth, y + 8);
+  setText(10, MUTED);
+  pdf.text('Aufmaß-Dokumentation', M, y + 13);
+
+  // Right-aligned meta
+  const today = fmtDate(new Date().toISOString());
+  setText(9, MUTED);
+  pdf.text(`Datum: ${today}`, A4_W - M, y + 4, { align: 'right' });
+  pdf.text(`Projekt: ${labelType()}`, A4_W - M, y + 8, { align: 'right' });
+  pdf.text(`Räume: ${state.rooms.length}`, A4_W - M, y + 12, { align: 'right' });
+
+  y += 18;
+  pdf.setDrawColor(PETROL[0], PETROL[1], PETROL[2]);
+  pdf.setLineWidth(0.5);
+  pdf.line(M, y, A4_W - M, y);
+  y += 8;
+
+  // === CUSTOMER + APPOINTMENT ===
+  setText(7, PETROL, 'bold');
+  pdf.text('KUNDE', M, y);
+  pdf.text('TERMIN', A4_W - M, y, { align: 'right' });
+  y += 5;
+
+  setText(10, TEXT);
+  const fullName = [state.customer.salutation, state.customer.firstName, state.customer.lastName].filter(Boolean).join(' ') || '—';
+  pdf.text(fullName, M, y);
+  pdf.text(fmtDate(state.customer.appointment) || '—', A4_W - M, y, { align: 'right' });
+  y += 4.5;
+  pdf.text(state.customer.street || '—', M, y);
+  y += 4.5;
+  pdf.text(((state.customer.zip || '') + ' ' + (state.customer.city || '')).trim() || '—', M, y);
+  y += 4.5;
+  pdf.text(state.customer.phone || '—', M, y);
+  y += 9;
+
+  // === PROJECT NOTES (if any) ===
+  if (state.projectNotes && state.projectNotes.trim()) {
+    const notesLines = pdf.splitTextToSize(state.projectNotes.trim(), W - 8);
+    const notesHeight = Math.max(18, 8 + notesLines.length * 4);
+
+    ensure(notesHeight + 3);
+
+    // Background
+    pdf.setFillColor(NOTES_BG[0], NOTES_BG[1], NOTES_BG[2]);
+    pdf.rect(M, y, W, notesHeight, 'F');
+    // Left accent bar
+    pdf.setFillColor(PETROL[0], PETROL[1], PETROL[2]);
+    pdf.rect(M, y, 1.5, notesHeight, 'F');
+
+    setText(7, PETROL, 'bold');
+    pdf.text('PROJEKT-NOTIZEN', M + 4, y + 4);
+    setText(9, TEXT);
+    pdf.text(notesLines, M + 4, y + 9);
+
+    y += notesHeight + 5;
   }
 
-  if (document.fonts && document.fonts.ready) {
-    try { await document.fonts.ready; } catch(e) {}
-  }
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  // === Section title "Räume · Aufmaß" ===
+  ensure(15);
+  setText(14, TEXT);
+  pdf.text('Räume · Aufmaß', M, y);
+  y += 8;
 
-  // === 2. Render the WHOLE document as one canvas ===
-  console.log('[Aufmaß-PDF] Rendere gesamtes Dokument...');
-  const fullCanvas = await html2canvas(docEl, {
-    scale: 1.5,
-    useCORS: true,
-    backgroundColor: '#ffffff',
-    logging: false,
-    allowTaint: true,
-    imageTimeout: 5000,
-    windowWidth: docEl.offsetWidth,
-    windowHeight: docEl.offsetHeight,
+  // === PER ROOM ===
+  for (let i = 0; i < state.rooms.length; i++) {
+    const room = state.rooms[i];
+
+    // Room block needs ~50mm at minimum (title + 3 rows of grid + notes)
+    ensure(50);
+
+    // Title with underline
+    setText(13, PETROL, 'bold');
+    pdf.text(`${String(i+1).padStart(2,'0')} · ${room.name || 'Raum ' + (i+1)}`, M, y);
+    y += 2;
+    pdf.setDrawColor(PETROL[0], PETROL[1], PETROL[2]);
+    pdf.setLineWidth(0.3);
+    pdf.line(M, y, A4_W - M, y);
+    y += 6;
+
+    // 12-field grid (4 cols × 3 rows)
+    const calc = calculateRoom(room);
+    const innen = PRODUCTS_INDOOR.find(x => x.sku === state.selectedDevices[room.id]);
+
+    const fields = [
+      ['Fläche', `${fmtNum(room.area, 1)} m²`, false],
+      ['Höhe', `${fmtNum(room.height, 2)} m`, false],
+      ['Stockwerk', FLOOR_LABEL[room.floor] || '—', false],
+      ['Dämmung', INSULATION_LABEL[room.insulation] || '—', false],
+      ['Fenster', `${fmtNum(room.windowArea, 1)} m²`, false],
+      ['Ausrichtung', ORIENTATION_LABEL[room.orientation] || '—', false],
+      ['Verschattung', room.externalShading ? 'ja' : 'nein', false],
+      ['Korrektur', `${room.correctionPct > 0 ? '+' : ''}${room.correctionPct} %`, false],
+      ['Berechnung', `${fmtNum(calc.rawKw, 2)} kW`, false],
+      ['Empfehlung', `${fmtNum(calc.recommendedKw, 1)} kW`, false],
+      ['Auslegung', `${fmtNum(room.finalKw, 1)} kW`, true],   // highlighted in petrol
+      ['Innengerät', innen ? `${innen.brand} ${innen.name}` : '—', false],
+    ];
+
+    const fieldW = W / 4;
+    const rowH = 10;
+    fields.forEach((f, idx) => {
+      const col = idx % 4;
+      const row = Math.floor(idx / 4);
+      const fx = M + col * fieldW;
+      const fy = y + row * rowH;
+
+      setText(6.5, MUTED, 'bold');
+      pdf.text(f[0].toUpperCase(), fx, fy);
+
+      setText(10, f[2] ? PETROL : TEXT, f[2] ? 'bold' : 'normal');
+      const valueLines = pdf.splitTextToSize(String(f[1]), fieldW - 2);
+      pdf.text(valueLines[0] || '', fx, fy + 4);
+    });
+    y += 3 * rowH + 2;
+
+    // Outdoor device
+    let outdoorLabel = '';
+    if (state.outdoorMode === 'individual') {
+      const o = PRODUCTS_OUTDOOR.find(x => x.sku === state.selectedOutdoorPerRoom[room.id]);
+      if (o) outdoorLabel = `${o.brand} ${o.name} (${o.kw} kW)`;
+    } else if (state.outdoorMode === 'circles') {
+      const circle = (state.outdoorCircles || []).find(c => c.roomIds.includes(room.id));
+      if (circle && circle.sku) {
+        const o = PRODUCTS_OUTDOOR.find(x => x.sku === circle.sku);
+        if (o) outdoorLabel = `${o.brand} ${o.name} (${o.kw} kW, Außenkreis)`;
+      }
+    } else if (state.outdoorMode === 'shared' && state.selectedOutdoor) {
+      const o = PRODUCTS_OUTDOOR.find(x => x.sku === state.selectedOutdoor);
+      if (o) outdoorLabel = `${o.brand} ${o.name} (${o.kw} kW, gemeinsam)`;
+    }
+
+    if (outdoorLabel) {
+      setText(9, MUTED, 'bold');
+      pdf.text('Außengerät:', M, y);
+      setText(9, TEXT);
+      pdf.text(outdoorLabel, M + 22, y);
+      y += 5;
+    }
+
+    if (room.correctionReason) {
+      setText(9, MUTED, 'bold');
+      pdf.text('Korrektur:', M, y);
+      setText(9, TEXT);
+      const reasonLines = pdf.splitTextToSize(room.correctionReason, W - 22);
+      pdf.text(reasonLines, M + 22, y);
+      y += reasonLines.length * 4 + 1;
+    }
+
+    if (room.notes) {
+      setText(9, MUTED, 'bold');
+      pdf.text('Notizen:', M, y);
+      setText(9, TEXT);
+      const noteLines = pdf.splitTextToSize(room.notes, W - 22);
+      pdf.text(noteLines, M + 22, y);
+      y += noteLines.length * 4 + 1;
+    }
+
+    // Photos for this room
+    const roomPhotos = getPhotosFor(room.id);
+    if (roomPhotos.length > 0) {
+      y += 3;
+      ensure(8);
+      setText(7, PETROL, 'bold');
+      pdf.text('FOTOS ZUR MONTAGE', M, y);
+      y += 4;
+      y = await drawPhotoGrid(pdf, roomPhotos, M, y, W, A4_H);
+    }
+
+    y += 6;
+  }
+
+  // === OUTDOOR PHOTOS (if any) ===
+  const outdoorPhotos = getPhotosFor('outdoor');
+  if (outdoorPhotos.length > 0) {
+    ensure(20);
+    setText(13, PETROL, 'bold');
+    pdf.text('Außenbereich', M, y);
+    y += 2;
+    pdf.setDrawColor(PETROL[0], PETROL[1], PETROL[2]);
+    pdf.line(M, y, A4_W - M, y);
+    y += 6;
+    setText(7, PETROL, 'bold');
+    pdf.text('FOTOS AUSSENBEREICH', M, y);
+    y += 4;
+    y = await drawPhotoGrid(pdf, outdoorPhotos, M, y, W, A4_H);
+    y += 6;
+  }
+
+  // === FOOTER / SIGNATURE BLOCK ===
+  ensure(35);
+  y = Math.max(y, A4_H - 35);
+
+  pdf.setDrawColor(PETROL[0], PETROL[1], PETROL[2]);
+  pdf.setLineWidth(0.6);
+  pdf.line(M, y, A4_W - M, y);
+  y += 8;
+
+  const sigW = W / 3 - 4;
+  const sigCols = [
+    { label: 'Aufgenommen von', value: state.author.name || '' },
+    { label: 'Unterschrift Monteur', value: '' },
+    { label: 'Datum', value: today },
+  ];
+  sigCols.forEach((col, idx) => {
+    const cx = M + idx * (W / 3);
+    pdf.setDrawColor(50, 50, 50);
+    pdf.setLineWidth(0.3);
+    pdf.line(cx, y, cx + sigW, y);
+    setText(9, TEXT);
+    if (col.value) pdf.text(col.value, cx, y - 2);
+    setText(7, MUTED);
+    pdf.text(col.label, cx, y + 4);
   });
 
-  if (!fullCanvas || fullCanvas.width === 0 || fullCanvas.height === 0) {
-    throw new Error(`Canvas leer (${fullCanvas?.width}x${fullCanvas?.height}).`);
-  }
-  console.log(`[Aufmaß-PDF] Canvas: ${fullCanvas.width}x${fullCanvas.height}`);
+  console.log('[Aufmaß-PDF] Erfolgreich erstellt');
+}
 
-  // === 3. Calculate slicing ===
-  // The full canvas represents the doc at scale 1.5. We want to render it
-  // at full A4 width (210mm) in the PDF. So:
-  //   1 mm in PDF = fullCanvas.width / A4_W pixels in canvas
-  //   one A4 page height = A4_H * (fullCanvas.width / A4_W) pixels
-  const pxPerMm = fullCanvas.width / A4_W;
-  const slicePxHeight = Math.floor(A4_H * pxPerMm);
-  const totalSlices = Math.ceil(fullCanvas.height / slicePxHeight);
-  console.log(`[Aufmaß-PDF] ${totalSlices} A4-Seiten geplant`);
+// Helper: draws photos in 3-column grid starting at (x, y),
+// adds new pages as needed, returns final y position.
+async function drawPhotoGrid(pdf, photos, x, y, contentW, pageH) {
+  const cols = 3;
+  const gap = 3;
+  const photoW = (contentW - (cols - 1) * gap) / cols;
+  const photoH = photoW * 0.75;  // 4:3 aspect
+  const captionH = 4;
+  const cellH = photoH + captionH + 2;
 
-  // === 4. For each slice: create a small canvas, copy the chunk, encode to JPEG, add to PDF ===
-  for (let s = 0; s < totalSlices; s++) {
-    const sliceTopPx = s * slicePxHeight;
-    const sliceHeightPx = Math.min(slicePxHeight, fullCanvas.height - sliceTopPx);
+  const M = x;  // left margin
 
-    // Create a small canvas just for this slice
-    const sliceCanvas = document.createElement('canvas');
-    sliceCanvas.width = fullCanvas.width;
-    sliceCanvas.height = sliceHeightPx;
-    const ctx = sliceCanvas.getContext('2d');
-    // White background (in case of any transparent areas)
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
-    // Copy the relevant slice from the full canvas
-    ctx.drawImage(
-      fullCanvas,
-      0, sliceTopPx,                  // source x, y
-      fullCanvas.width, sliceHeightPx, // source w, h
-      0, 0,                            // dest x, y
-      fullCanvas.width, sliceHeightPx  // dest w, h
-    );
+  for (let i = 0; i < photos.length; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
 
-    // Add to PDF — pass the CANVAS element directly, not a data URL.
-    // jsPDF accepts canvas elements and handles the encoding internally,
-    // which is more reliable than toDataURL on iOS Safari (avoids JPEG
-    // header / color profile issues that trigger "index not in allowed range").
-    if (s > 0) pdf.addPage();
-    const sliceMmHeight = sliceHeightPx / pxPerMm;
-
-    try {
-      // Try canvas-direct first (most reliable on iOS)
-      pdf.addImage(sliceCanvas, 'PNG', 0, 0, A4_W, sliceMmHeight);
-      console.log(`[Aufmaß-PDF] Slice ${s + 1}/${totalSlices} hinzugefügt (Canvas direkt, PNG)`);
-    } catch (e1) {
-      console.warn(`[Aufmaß-PDF] Canvas-direkt PNG fehlgeschlagen, versuche JPEG-via-Image:`, e1);
-      try {
-        // Fallback: toDataURL → HTMLImageElement → addImage
-        const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.85);
-        const img = new Image();
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = () => reject(new Error('Slice-Bild konnte nicht geladen werden'));
-          img.src = sliceData;
-        });
-        pdf.addImage(img, 'JPEG', 0, 0, A4_W, sliceMmHeight);
-        console.log(`[Aufmaß-PDF] Slice ${s + 1}/${totalSlices} hinzugefügt (JPEG via Image)`);
-      } catch (e2) {
-        console.error(`[Aufmaß-PDF] Beide Methoden fehlgeschlagen für Slice ${s + 1}:`, e2);
-        throw new Error(`Slice ${s + 1} konnte nicht ins PDF eingefügt werden: ${e2.message || e2}`);
+    // New row → check if it fits on current page
+    if (col === 0 && row > 0) {
+      if (y + cellH > pageH - 15) {
+        pdf.addPage();
+        y = 15;  // top margin
+        // We don't reset the layout — just continue from top
+        // Note: row count resets implicitly because we shift y
       }
+    }
+    // First photo also needs space check
+    if (i === 0 && y + cellH > pageH - 15) {
+      pdf.addPage();
+      y = 15;
+    }
+
+    const px = M + col * (photoW + gap);
+    const py = y + Math.floor(i / cols) * cellH;
+
+    // Border around photo (light gray)
+    pdf.setDrawColor(220, 220, 220);
+    pdf.setLineWidth(0.2);
+
+    // Add the image
+    try {
+      // Try as JPEG first (common case)
+      const fmt = photos[i].dataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+      pdf.addImage(photos[i].dataUrl, fmt, px, py, photoW, photoH);
+    } catch (e) {
+      console.warn(`[Aufmaß-PDF] Foto ${i} konnte nicht eingefügt werden:`, e);
+      // Draw placeholder rectangle
+      pdf.setFillColor(245, 245, 245);
+      pdf.rect(px, py, photoW, photoH, 'F');
+      pdf.setFontSize(8);
+      pdf.setTextColor(150, 150, 150);
+      pdf.text('Bild konnte nicht geladen werden', px + 2, py + photoH / 2, { maxWidth: photoW - 4 });
+    }
+
+    // Caption below photo
+    if (photos[i].caption) {
+      pdf.setFontSize(7);
+      pdf.setTextColor(75, 75, 75);
+      const captionLines = pdf.splitTextToSize(photos[i].caption, photoW);
+      pdf.text(captionLines[0] || '', px, py + photoH + 3, { maxWidth: photoW });
     }
   }
 
-  console.log('[Aufmaß-PDF] Erfolgreich erstellt');
+  const totalRows = Math.ceil(photos.length / cols);
+  return y + totalRows * cellH;
 }
 
 // Modal that shows "PDF ist fertig" with a button.
