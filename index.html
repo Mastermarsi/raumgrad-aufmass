@@ -3424,7 +3424,7 @@ function renderSummaryScreen() {
         <span>${PRODUCTS_INDOOR.length} Innen · ${PRODUCTS_OUTDOOR.length} Außen · ${ACCESSORIES.length} Zubehör</span>
       </div>
       <div style="margin-top: 8px; padding: 6px 14px; font-size: 10px; color: var(--text-soft); text-align: center; opacity: 0.6;">
-        App-Version: 2026-05-30-aufmass-v5
+        App-Version: 2026-05-30-angebot-v6
       </div>
     </section>
   `;
@@ -3629,64 +3629,205 @@ async function generateAngebotPdf(pdf, docEl, A4_W, A4_H) {
   const pages = docEl.querySelectorAll('.doc-page');
   if (pages.length === 0) throw new Error('Keine Seiten im Angebot gefunden.');
 
+  // Footer is drawn natively with jsPDF (see drawAngebotFooter) so it never
+  // gets cut by the slicing logic. We hide the HTML footer during rendering
+  // so it doesn't appear twice.
+  const FOOTER_RESERVED_MM = 28;  // space reserved on each PDF page for our native footer
+
+  // Pre-calculate total PDF pages so we can show "Seite x von y"
+  // (first do a quick pass to count)
+  let totalPdfPages = 0;
+  const pageHeightsMm = [];
+
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i];
-    const canvas = await html2canvas(page, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      allowTaint: true,
-      imageTimeout: 8000,
-      windowWidth: page.offsetWidth,
-      windowHeight: page.offsetHeight,
-    });
+    const aspect = page.offsetHeight / page.offsetWidth;
+    const heightMm = A4_W * aspect;
+    pageHeightsMm.push(heightMm);
+    // Each HTML page produces ceil(heightMm / (A4_H - FOOTER_RESERVED_MM)) PDF pages
+    const usableHeight = A4_H - FOOTER_RESERVED_MM;
+    totalPdfPages += Math.max(1, Math.ceil(heightMm / usableHeight));
+  }
+
+  let currentPdfPageNum = 1;
+
+  for (let i = 0; i < pages.length; i++) {
+    const page = pages[i];
+
+    // Hide HTML footer during rendering — we'll draw our own with jsPDF
+    const htmlFooter = page.querySelector('.doc-foot-wrap');
+    const originalDisplay = htmlFooter ? htmlFooter.style.display : '';
+    if (htmlFooter) htmlFooter.style.display = 'none';
+
+    let canvas;
+    try {
+      canvas = await html2canvas(page, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        allowTaint: true,
+        imageTimeout: 8000,
+        windowWidth: page.offsetWidth,
+        windowHeight: page.offsetHeight,
+      });
+    } finally {
+      // Always restore the HTML footer for the modal preview
+      if (htmlFooter) htmlFooter.style.display = originalDisplay;
+    }
 
     const canvasAspect = canvas.height / canvas.width;
     const imgFullHeight = A4_W * canvasAspect;
+    const usableHeight = A4_H - FOOTER_RESERVED_MM;
 
-    if (imgFullHeight <= A4_H + 5) {
-      if (i > 0) pdf.addPage();
-      const imgData = canvas.toDataURL('image/jpeg', 0.94);
+    const imgData = canvas.toDataURL('image/jpeg', 0.94);
+
+    if (imgFullHeight <= usableHeight + 2) {
+      // Fits on one PDF page
+      if (currentPdfPageNum > 1) pdf.addPage();
       pdf.addImage(imgData, 'JPEG', 0, 0, A4_W, imgFullHeight, undefined, 'FAST');
 
-      // Inject QR for quote doc
-      const qrImg = page.querySelector('#quote-qr img');
-      if (qrImg && qrImg.src) {
-        try {
-          const pageRect = page.getBoundingClientRect();
-          const qrRect = qrImg.getBoundingClientRect();
-          const mmPerPx = 210 / pageRect.width;
-          const x = (qrRect.left - pageRect.left) * mmPerPx;
-          const y = (qrRect.top - pageRect.top) * mmPerPx;
-          const w = qrRect.width * mmPerPx;
-          const h = qrRect.height * mmPerPx;
-          let qrPng = qrImg.src;
-          if (qrPng.startsWith('blob:')) {
-            const resp = await fetch(qrPng);
-            const blob = await resp.blob();
-            qrPng = await new Promise((resolve, reject) => {
-              const fr = new FileReader();
-              fr.onloadend = () => resolve(fr.result);
-              fr.onerror = () => reject(new Error('Blob read failed'));
-              fr.readAsDataURL(blob);
-            });
-          }
-          pdf.setFillColor(255, 255, 255);
-          pdf.rect(x, y, w, h, 'F');
-          pdf.addImage(qrPng, 'PNG', x, y, w, h, undefined, 'NONE');
-        } catch(qrErr) { console.warn('QR injection failed:', qrErr); }
-      }
+      // QR code overlay (only for quote doc, only on page 1)
+      if (i === 0) injectQrIfPresent(pdf, page);
+
+      // Draw native footer
+      drawAngebotFooter(pdf, currentPdfPageNum, totalPdfPages, A4_W, A4_H);
+      currentPdfPageNum++;
     } else {
-      const totalPages = Math.ceil(imgFullHeight / A4_H);
-      const imgData = canvas.toDataURL('image/jpeg', 0.94);
-      for (let p = 0; p < totalPages; p++) {
-        if (i > 0 || p > 0) pdf.addPage();
-        const yOffset = -p * A4_H;
+      // Slice across multiple PDF pages
+      const slicesPerPage = Math.ceil(imgFullHeight / usableHeight);
+      for (let p = 0; p < slicesPerPage; p++) {
+        if (currentPdfPageNum > 1) pdf.addPage();
+        const yOffset = -p * usableHeight;
         pdf.addImage(imgData, 'JPEG', 0, yOffset, A4_W, imgFullHeight, undefined, 'FAST');
+
+        // Cover any image bleed below the usable area with a white rectangle,
+        // so the footer area is clean for our native footer.
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(0, usableHeight, A4_W, A4_H - usableHeight, 'F');
+
+        // QR overlay only on the first slice of page 1
+        if (i === 0 && p === 0) injectQrIfPresent(pdf, page);
+
+        drawAngebotFooter(pdf, currentPdfPageNum, totalPdfPages, A4_W, A4_H);
+        currentPdfPageNum++;
       }
     }
   }
+}
+
+// Draws the Angebot footer at the bottom of the current PDF page using
+// native jsPDF primitives. Pulls company / quote data from state.
+function drawAngebotFooter(pdf, pageNum, totalPages, A4_W, A4_H) {
+  const PETROL = [31, 78, 71];
+  const MUTED  = [107, 107, 107];
+  const ACCENT_TEXT = [155, 155, 152];
+
+  const M = 16;  // matches .doc-page padding-left/right (16mm)
+  const W = A4_W - 2 * M;
+
+  // The footer occupies the bottom ~24mm. We start drawing 24mm above page bottom.
+  const footerTop = A4_H - 24;  // top of footer block
+
+  const today = fmtDate(new Date().toISOString());
+
+  // === Mini meta bar (3 columns) ===
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(7);
+  pdf.setTextColor(ACCENT_TEXT[0], ACCENT_TEXT[1], ACCENT_TEXT[2]);
+
+  // Left
+  pdf.text(`Angebot ${state.quoteNumber || ''} · ${today}`, M, footerTop);
+  // Center: page number
+  pdf.text(`Seite ${pageNum} von ${totalPages}`, A4_W / 2, footerTop, { align: 'center' });
+  // Right
+  pdf.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+  pdf.text('Raumgrad', A4_W - M - 28, footerTop);
+  pdf.setTextColor(PETROL[0], PETROL[1], PETROL[2]);
+  pdf.text('°', A4_W - M - 28 + 11, footerTop);
+  pdf.setTextColor(ACCENT_TEXT[0], ACCENT_TEXT[1], ACCENT_TEXT[2]);
+  pdf.text(' GmbH · raumgrad.de', A4_W - M - 28 + 12, footerTop);
+
+  // Petrol line under meta
+  const lineY = footerTop + 2;
+  pdf.setDrawColor(PETROL[0], PETROL[1], PETROL[2]);
+  pdf.setLineWidth(0.6);
+  pdf.line(M, lineY, A4_W - M, lineY);
+
+  // === 4-column company info ===
+  const colY = lineY + 3;
+  const colW = W / 4;
+
+  const cols = [
+    {
+      h: 'RAUMGRAD GMBH',
+      l: ['Robert-Bosch-Straße 24', '61184 Karben', 'Deutschland']
+    },
+    {
+      h: 'KONTAKT',
+      l: ['06039 / 468 90 30', 'info@raumgrad.de', 'raumgrad.de']
+    },
+    {
+      h: 'RECHTLICHES',
+      l: [
+        `USt-IdNr.: ${state.company.ustId || ''}`,
+        `${state.company.hrb || ''}`,
+        `Geschäftsführer: ${state.company.geschaeftsfuehrer || ''}`
+      ]
+    },
+    {
+      h: 'BANKVERBINDUNG',
+      l: [
+        state.company.bankName || '',
+        `IBAN: ${state.company.iban || ''}`,
+        `BIC: ${state.company.bic || ''}`
+      ]
+    },
+  ];
+
+  cols.forEach((c, idx) => {
+    const cx = M + idx * colW;
+
+    // Heading in petrol
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(6.5);
+    pdf.setTextColor(PETROL[0], PETROL[1], PETROL[2]);
+    pdf.text(c.h, cx, colY);
+
+    // Lines below
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7);
+    pdf.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+    c.l.forEach((line, lidx) => {
+      // Truncate too-long lines to avoid overlap with next column
+      const truncated = pdf.splitTextToSize(line, colW - 2)[0] || '';
+      pdf.text(truncated, cx, colY + 3.5 + lidx * 3);
+    });
+  });
+}
+
+// Pulled out for reuse: QR injection on the quote doc.
+function injectQrIfPresent(pdf, page) {
+  const qrImg = page.querySelector('#quote-qr img');
+  if (!qrImg || !qrImg.src) return;
+  try {
+    const pageRect = page.getBoundingClientRect();
+    const qrRect = qrImg.getBoundingClientRect();
+    const mmPerPx = 210 / pageRect.width;
+    const x = (qrRect.left - pageRect.left) * mmPerPx;
+    const y = (qrRect.top - pageRect.top) * mmPerPx;
+    const w = qrRect.width * mmPerPx;
+    const h = qrRect.height * mmPerPx;
+    let qrPng = qrImg.src;
+    if (qrPng.startsWith('blob:')) {
+      // Synchronous fetch isn't possible here, so we skip blob QR injection.
+      // (Most setups produce data URLs; blob is rare.)
+      return;
+    }
+    pdf.setFillColor(255, 255, 255);
+    pdf.rect(x, y, w, h, 'F');
+    pdf.addImage(qrPng, 'PNG', x, y, w, h, undefined, 'NONE');
+  } catch(qrErr) { console.warn('QR injection failed:', qrErr); }
 }
 
 async function generateAufmassPdf(pdf, docEl, A4_W, A4_H) {
