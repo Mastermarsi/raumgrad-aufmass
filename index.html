@@ -3424,7 +3424,7 @@ function renderSummaryScreen() {
         <span>${PRODUCTS_INDOOR.length} Innen · ${PRODUCTS_OUTDOOR.length} Außen · ${ACCESSORIES.length} Zubehör</span>
       </div>
       <div style="margin-top: 8px; padding: 6px 14px; font-size: 10px; color: var(--text-soft); text-align: center; opacity: 0.6;">
-        App-Version: 2026-05-30-aufmass-v2
+        App-Version: 2026-05-30-aufmass-v3
       </div>
     </section>
   `;
@@ -3690,13 +3690,12 @@ async function generateAngebotPdf(pdf, docEl, A4_W, A4_H) {
 }
 
 async function generateAufmassPdf(pdf, docEl, A4_W, A4_H) {
-  // Simplified strategy: render the ENTIRE Aufmaß doc as one canvas,
-  // then slice the image across PDF pages. Same approach that's proven
-  // to work for the Angebot. Eliminates per-section render failures.
-  //
-  // Canvas size budget: at scale 1.5 and 794px width, a 5-room doc with
-  // photos = ~3000-4000px tall. iOS Safari canvas limit is ~16,384px,
-  // so we have plenty of headroom.
+  // Strategy: render the whole doc as ONE canvas, then split it into
+  // A4-sized chunks at the canvas level (using drawImage), and feed each
+  // small chunk to jsPDF separately. This avoids:
+  //   - jsPDF "The index is not in the allowed range" errors with huge images
+  //   - iOS memory issues from giant base64 data-URLs
+  //   - rendering glitches from per-section html2canvas calls
 
   // === 1. Preload all images in the doc ===
   const imgs = docEl.querySelectorAll('img');
@@ -3715,7 +3714,6 @@ async function generateAufmassPdf(pdf, docEl, A4_W, A4_H) {
     }));
   }
 
-  // Wait for fonts and another paint cycle so layout is settled
   if (document.fonts && document.fonts.ready) {
     try { await document.fonts.ready; } catch(e) {}
   }
@@ -3723,7 +3721,7 @@ async function generateAufmassPdf(pdf, docEl, A4_W, A4_H) {
 
   // === 2. Render the WHOLE document as one canvas ===
   console.log('[Aufmaß-PDF] Rendere gesamtes Dokument...');
-  const canvas = await html2canvas(docEl, {
+  const fullCanvas = await html2canvas(docEl, {
     scale: 1.5,
     useCORS: true,
     backgroundColor: '#ffffff',
@@ -3734,30 +3732,59 @@ async function generateAufmassPdf(pdf, docEl, A4_W, A4_H) {
     windowHeight: docEl.offsetHeight,
   });
 
-  if (!canvas || canvas.width === 0 || canvas.height === 0) {
-    throw new Error(`Canvas leer (${canvas?.width}x${canvas?.height}). Aufmaß-Dokument konnte nicht gerendert werden.`);
+  if (!fullCanvas || fullCanvas.width === 0 || fullCanvas.height === 0) {
+    throw new Error(`Canvas leer (${fullCanvas?.width}x${fullCanvas?.height}).`);
   }
-  console.log(`[Aufmaß-PDF] Canvas gerendert: ${canvas.width}x${canvas.height}`);
+  console.log(`[Aufmaß-PDF] Canvas: ${fullCanvas.width}x${fullCanvas.height}`);
 
-  // === 3. Calculate dimensions ===
-  // The doc renders at the modal's natural width. We scale it to fit A4 content width.
-  const canvasAspect = canvas.height / canvas.width;
-  const imgFullHeight = A4_W * canvasAspect;  // image height in mm at full A4 width
+  // === 3. Calculate slicing ===
+  // The full canvas represents the doc at scale 1.5. We want to render it
+  // at full A4 width (210mm) in the PDF. So:
+  //   1 mm in PDF = fullCanvas.width / A4_W pixels in canvas
+  //   one A4 page height = A4_H * (fullCanvas.width / A4_W) pixels
+  const pxPerMm = fullCanvas.width / A4_W;
+  const slicePxHeight = Math.floor(A4_H * pxPerMm);
+  const totalSlices = Math.ceil(fullCanvas.height / slicePxHeight);
+  console.log(`[Aufmaß-PDF] ${totalSlices} A4-Seiten geplant`);
 
-  const imgData = canvas.toDataURL('image/jpeg', 0.88);
+  // === 4. For each slice: create a small canvas, copy the chunk, encode to JPEG, add to PDF ===
+  for (let s = 0; s < totalSlices; s++) {
+    const sliceTopPx = s * slicePxHeight;
+    const sliceHeightPx = Math.min(slicePxHeight, fullCanvas.height - sliceTopPx);
 
-  // === 4. Place onto PDF pages ===
-  if (imgFullHeight <= A4_H + 5) {
-    // Fits on one page
-    pdf.addImage(imgData, 'JPEG', 0, 0, A4_W, imgFullHeight, undefined, 'FAST');
-  } else {
-    // Slice across multiple pages — draw the same full image with different y-offsets
-    const totalPages = Math.ceil(imgFullHeight / A4_H);
-    console.log(`[Aufmaß-PDF] Inhalt verteilt auf ${totalPages} Seiten`);
-    for (let p = 0; p < totalPages; p++) {
-      if (p > 0) pdf.addPage();
-      const yOffset = -p * A4_H;
-      pdf.addImage(imgData, 'JPEG', 0, yOffset, A4_W, imgFullHeight, undefined, 'FAST');
+    // Create a small canvas just for this slice
+    const sliceCanvas = document.createElement('canvas');
+    sliceCanvas.width = fullCanvas.width;
+    sliceCanvas.height = sliceHeightPx;
+    const ctx = sliceCanvas.getContext('2d');
+    // White background (in case of any transparent areas)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+    // Copy the relevant slice from the full canvas
+    ctx.drawImage(
+      fullCanvas,
+      0, sliceTopPx,                  // source x, y
+      fullCanvas.width, sliceHeightPx, // source w, h
+      0, 0,                            // dest x, y
+      fullCanvas.width, sliceHeightPx  // dest w, h
+    );
+
+    let sliceData;
+    try {
+      sliceData = sliceCanvas.toDataURL('image/jpeg', 0.88);
+    } catch (e) {
+      console.error(`[Aufmaß-PDF] Slice ${s} toDataURL fehlgeschlagen:`, e);
+      continue;
+    }
+
+    // Add to PDF
+    if (s > 0) pdf.addPage();
+    const sliceMmHeight = sliceHeightPx / pxPerMm;
+    try {
+      pdf.addImage(sliceData, 'JPEG', 0, 0, A4_W, sliceMmHeight, undefined, 'FAST');
+    } catch (e) {
+      console.error(`[Aufmaß-PDF] addImage für Slice ${s} fehlgeschlagen:`, e);
+      throw e;
     }
   }
 
