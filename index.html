@@ -3424,7 +3424,7 @@ function renderSummaryScreen() {
         <span>${PRODUCTS_INDOOR.length} Innen · ${PRODUCTS_OUTDOOR.length} Außen · ${ACCESSORIES.length} Zubehör</span>
       </div>
       <div style="margin-top: 8px; padding: 6px 14px; font-size: 10px; color: var(--text-soft); text-align: center; opacity: 0.6;">
-        App-Version: 2026-05-30-aufmass-v3
+        App-Version: 2026-05-30-aufmass-v4
       </div>
     </section>
   `;
@@ -3769,22 +3769,34 @@ async function generateAufmassPdf(pdf, docEl, A4_W, A4_H) {
       fullCanvas.width, sliceHeightPx  // dest w, h
     );
 
-    let sliceData;
-    try {
-      sliceData = sliceCanvas.toDataURL('image/jpeg', 0.88);
-    } catch (e) {
-      console.error(`[Aufmaß-PDF] Slice ${s} toDataURL fehlgeschlagen:`, e);
-      continue;
-    }
-
-    // Add to PDF
+    // Add to PDF — pass the CANVAS element directly, not a data URL.
+    // jsPDF accepts canvas elements and handles the encoding internally,
+    // which is more reliable than toDataURL on iOS Safari (avoids JPEG
+    // header / color profile issues that trigger "index not in allowed range").
     if (s > 0) pdf.addPage();
     const sliceMmHeight = sliceHeightPx / pxPerMm;
+
     try {
-      pdf.addImage(sliceData, 'JPEG', 0, 0, A4_W, sliceMmHeight, undefined, 'FAST');
-    } catch (e) {
-      console.error(`[Aufmaß-PDF] addImage für Slice ${s} fehlgeschlagen:`, e);
-      throw e;
+      // Try canvas-direct first (most reliable on iOS)
+      pdf.addImage(sliceCanvas, 'PNG', 0, 0, A4_W, sliceMmHeight);
+      console.log(`[Aufmaß-PDF] Slice ${s + 1}/${totalSlices} hinzugefügt (Canvas direkt, PNG)`);
+    } catch (e1) {
+      console.warn(`[Aufmaß-PDF] Canvas-direkt PNG fehlgeschlagen, versuche JPEG-via-Image:`, e1);
+      try {
+        // Fallback: toDataURL → HTMLImageElement → addImage
+        const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.85);
+        const img = new Image();
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = () => reject(new Error('Slice-Bild konnte nicht geladen werden'));
+          img.src = sliceData;
+        });
+        pdf.addImage(img, 'JPEG', 0, 0, A4_W, sliceMmHeight);
+        console.log(`[Aufmaß-PDF] Slice ${s + 1}/${totalSlices} hinzugefügt (JPEG via Image)`);
+      } catch (e2) {
+        console.error(`[Aufmaß-PDF] Beide Methoden fehlgeschlagen für Slice ${s + 1}:`, e2);
+        throw new Error(`Slice ${s + 1} konnte nicht ins PDF eingefügt werden: ${e2.message || e2}`);
+      }
     }
   }
 
